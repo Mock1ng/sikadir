@@ -10,8 +10,9 @@ import {
 } from "react-native";
 import React, { useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
-import Ionicons from "@expo/vector-icons/Ionicons";
+import { Ionicons } from "@expo/vector-icons";
 import { COLORS } from "@/constants/Colors";
+import { router } from "expo-router";
 
 const LoginScreen = () => {
   const [isSaveNim, setIsSaveNim] = useState(false);
@@ -24,7 +25,7 @@ const LoginScreen = () => {
         onPress: () => console.log("Cancel Pressed"),
         style: "cancel"
       },
-      { text: "OK", onPress: () => console.log("OK Pressed") }
+      { text: "OK", onPress: () => router.push("/") }
     ]);
   };
 
@@ -116,7 +117,7 @@ const LoginScreen = () => {
             justifyContent: "center"
           }}
           onPress={onSubmit}
-          underlayColor={"#437599"}
+          underlayColor={COLORS.primaryUnderlay}
         >
           <View>
             <Text
