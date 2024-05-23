@@ -2,9 +2,13 @@ import { StyleSheet, Text, TouchableHighlight, View } from "react-native";
 import React, { useState } from "react";
 import { COLORS } from "@/constants/Colors";
 import DateLabel from "./DateLabel";
-import { Link, router } from "expo-router";
+import { BottomSheetMethods } from "@devvie/bottom-sheet";
 
-const ClockIn = () => {
+const ClockIn = ({
+  bottomSheet
+}: {
+  bottomSheet: React.RefObject<BottomSheetMethods>;
+}) => {
   const [isAbleClockIn, setIsAbleClockIn] = useState(true);
   const [isClockedIn, setIsClockedIn] = useState(false);
   const [isLate, setIsLate] = useState(false);
@@ -37,7 +41,9 @@ const ClockIn = () => {
           <TouchableHighlight
             style={styles.absenceBtn}
             underlayColor={"#fff"}
-            onPress={() => router.push("/absence")}
+            onPress={() => {
+              bottomSheet?.current?.open();
+            }}
           >
             <View>
               <Text style={styles.absenceText}>Tidak Hadir</Text>

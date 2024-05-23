@@ -8,13 +8,17 @@ import {
   View
 } from "react-native";
 import React, { useState } from "react";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { Dropdown } from "react-native-element-dropdown";
 import { COLORS } from "@/constants/Colors";
 import { router } from "expo-router";
+import BottomSheet, { BottomSheetMethods } from "@devvie/bottom-sheet";
 
-const absence = () => {
+const AbsenceForm = ({
+  bottomSheet
+}: {
+  bottomSheet: React.RefObject<BottomSheetMethods>;
+}) => {
   const [value, setValue] = useState("");
   const [isFocus, setIsFocus] = useState(false);
 
@@ -26,11 +30,15 @@ const absence = () => {
   ];
 
   return (
-    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-      <SafeAreaView>
+    <BottomSheet ref={bottomSheet} height={"90%"} hideDragHandle={true}>
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <View style={styles.absenceWrapper}>
           <View style={styles.absenceHeader}>
-            <Ionicons name="close" size={22} onPress={() => router.back()} />
+            <Ionicons
+              name="close"
+              size={22}
+              onPress={bottomSheet?.current?.close}
+            />
             <Text style={styles.absenceHeaderText}>Tidak Hadir</Text>
           </View>
 
@@ -52,7 +60,10 @@ const absence = () => {
                   placeholder={!isFocus ? "Pilih alasan" : "..."}
                   searchPlaceholder="Search..."
                   value={value}
-                  onFocus={() => setIsFocus(true)}
+                  onFocus={() => {
+                    setIsFocus(true);
+                    Keyboard.dismiss();
+                  }}
                   onBlur={() => setIsFocus(false)}
                   onChange={(item) => {
                     setValue(item.value);
@@ -98,12 +109,12 @@ const absence = () => {
             </TouchableHighlight>
           </View>
         </View>
-      </SafeAreaView>
-    </TouchableWithoutFeedback>
+      </TouchableWithoutFeedback>
+    </BottomSheet>
   );
 };
 
-export default absence;
+export default AbsenceForm;
 
 const styles = StyleSheet.create({
   absenceWrapper: {

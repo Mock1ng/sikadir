@@ -7,95 +7,66 @@ import {
   Text,
   View
 } from "react-native";
-import React, {
-  useState,
-  useCallback,
-  useMemo,
-  useRef,
-  useEffect
-} from "react";
+import React, { useState, useRef } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { COLORS } from "@/constants/Colors";
-import { router, useRootNavigationState } from "expo-router";
+import { router } from "expo-router";
 import ClockIn from "@/components/ClockIn";
 import ClockInHistory from "@/components/ClockInHistory";
-import BottomSheet, {
-  BottomSheetView,
-  BottomSheetBackdrop
-} from "@gorhom/bottom-sheet";
+
+import { BottomSheetMethods } from "@devvie/bottom-sheet";
+import AbsenceForm from "@/components/AbsenceForm";
 
 const HomeScreen = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
-
-  const bottomSheetRef = useRef<BottomSheet>(null);
-  // const rootNavigationState = useRootNavigationState();
-  // useEffect(() => {
-  //   if (!rootNavigationState?.key) return;
-
-  //   router.push("/absence");
-  // }, [rootNavigationState]);
-
-  // callbacks
-  const handleSheetChanges = useCallback((index: number) => {
-    console.log("handleSheetChanges", index);
-  }, []);
+  const sheetRef = useRef<BottomSheetMethods>(null);
 
   return (
-    <SafeAreaView>
-      <StatusBar backgroundColor={COLORS.primary} />
-      <ScrollView
-        refreshControl={
-          <RefreshControl
-            refreshing={isRefreshing}
-            onRefresh={() => {
-              setIsRefreshing(true);
+    <>
+      <SafeAreaView>
+        <StatusBar backgroundColor={COLORS.primary} />
 
-              setTimeout(() => {
-                setIsRefreshing(false);
-                console.log("refresh");
-              }, 3000);
-            }}
-          />
-        }
-      >
-        <View style={styles.container}>
-          <View style={styles.head}>
-            <Text style={styles.logo}>SIKADIR</Text>
-            <Ionicons
-              name="log-out-outline"
-              size={32}
-              color={"#fff"}
-              onPress={() => router.push("/login")}
+        <ScrollView
+          refreshControl={
+            <RefreshControl
+              refreshing={isRefreshing}
+              onRefresh={() => {
+                setIsRefreshing(true);
+
+                setTimeout(() => {
+                  setIsRefreshing(false);
+                  console.log("refresh");
+                }, 3000);
+              }}
             />
+          }
+        >
+          <View style={styles.container}>
+            <View style={styles.head}>
+              <Text style={styles.logo}>SIKADIR</Text>
+              <Ionicons
+                name="log-out-outline"
+                size={32}
+                color={"#fff"}
+                onPress={() => router.push("/login")}
+              />
+            </View>
+
+            <View>
+              <Text style={styles.name}>John Doe</Text>
+              <Text style={styles.class}>III/b</Text>
+            </View>
+
+            <ClockIn bottomSheet={sheetRef} />
           </View>
 
-          <View>
-            <Text style={styles.name}>John Doe</Text>
-            <Text style={styles.class}>III/b</Text>
-          </View>
+          <ClockInHistory />
+        </ScrollView>
+      </SafeAreaView>
 
-          <ClockIn />
-        </View>
-
-        <ClockInHistory />
-      </ScrollView>
-
-      {/* <BottomSheet
-        ref={bottomSheetRef}
-        snapPoints={["90%"]}
-        onChange={handleSheetChanges}
-        enablePanDownToClose={true}
-      >
-        <BottomSheetView style={styles.contentContainer}>
-          <Text>Awesome 🎉</Text>
-          <Button
-            title="dismiss"
-            onPress={() => bottomSheetRef.current?.close()}
-          />
-        </BottomSheetView>
-      </BottomSheet> */}
-    </SafeAreaView>
+      <AbsenceForm bottomSheet={sheetRef} />
+    </>
   );
 };
 
