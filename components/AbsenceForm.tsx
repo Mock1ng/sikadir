@@ -7,7 +7,7 @@ import {
   TouchableWithoutFeedback,
   View
 } from "react-native";
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 import { Ionicons } from "@expo/vector-icons";
 import { Dropdown } from "react-native-element-dropdown";
 import { COLORS } from "@/constants/Colors";
@@ -21,6 +21,15 @@ const AbsenceForm = ({
 }) => {
   const [value, setValue] = useState("");
   const [isFocus, setIsFocus] = useState(false);
+  const [sheetHeight, setSheetHeight] = useState(0);
+
+  const onLayout = useCallback(
+    (event: { nativeEvent: { layout: { height: number } } }) => {
+      const { height } = event.nativeEvent.layout;
+      setSheetHeight(height);
+    },
+    []
+  );
 
   const data = [
     { label: "Pendidikan", value: "1" },
@@ -30,8 +39,8 @@ const AbsenceForm = ({
   ];
 
   return (
-    <BottomSheet ref={bottomSheet} height={"90%"} hideDragHandle={true}>
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+    <BottomSheet ref={bottomSheet} height={sheetHeight} hideDragHandle={true}>
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss} onLayout={onLayout}>
         <View style={styles.absenceWrapper}>
           <View style={styles.absenceHeader}>
             <Ionicons
@@ -120,8 +129,7 @@ const styles = StyleSheet.create({
   absenceWrapper: {
     padding: 16,
     gap: 24,
-    backgroundColor: "#fff",
-    height: "100%"
+    backgroundColor: "#F9FAFC"
   },
   absenceHeader: {
     flexDirection: "row",

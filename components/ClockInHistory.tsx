@@ -30,7 +30,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 10,
     gap: 14,
-    backgroundColor: "#fff",
+    backgroundColor: "#F9FAFC",
     zIndex: 2
   },
   historyHeader: {

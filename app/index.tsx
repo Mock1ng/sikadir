@@ -1,8 +1,7 @@
 import {
-  Button,
+  Pressable,
   RefreshControl,
   ScrollView,
-  StatusBar,
   StyleSheet,
   Text,
   View
@@ -14,6 +13,7 @@ import { COLORS } from "@/constants/Colors";
 import { router } from "expo-router";
 import ClockIn from "@/components/ClockIn";
 import ClockInHistory from "@/components/ClockInHistory";
+import { StatusBar } from "expo-status-bar";
 
 import { BottomSheetMethods } from "@devvie/bottom-sheet";
 import AbsenceForm from "@/components/AbsenceForm";
@@ -23,9 +23,9 @@ const HomeScreen = () => {
   const sheetRef = useRef<BottomSheetMethods>(null);
 
   return (
-    <>
+    <View style={{ backgroundColor: "#F9FAFC" }}>
       <SafeAreaView>
-        <StatusBar backgroundColor={COLORS.primary} />
+        <StatusBar style="light" backgroundColor={COLORS.primary} />
 
         <ScrollView
           refreshControl={
@@ -45,12 +45,9 @@ const HomeScreen = () => {
           <View style={styles.container}>
             <View style={styles.head}>
               <Text style={styles.logo}>SIKADIR</Text>
-              <Ionicons
-                name="log-out-outline"
-                size={32}
-                color={"#fff"}
-                onPress={() => router.push("/login")}
-              />
+              <Pressable onPress={() => router.push("/login")}>
+                <Ionicons name="log-out-outline" size={32} color={"#fff"} />
+              </Pressable>
             </View>
 
             <View>
@@ -66,7 +63,7 @@ const HomeScreen = () => {
       </SafeAreaView>
 
       <AbsenceForm bottomSheet={sheetRef} />
-    </>
+    </View>
   );
 };
 

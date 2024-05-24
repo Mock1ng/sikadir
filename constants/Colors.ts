@@ -4,5 +4,6 @@ export const COLORS = {
   primaryUnderlay: "#437599",
   primaryDarker: "#3A617E",
   danger: "rgb(228, 27, 27)",
-  danger70: "rgba(228, 27, 27, 0.7)"
+  danger70: "rgba(228, 27, 27, 0.7)",
+  background: "#F9FAFC"
 };

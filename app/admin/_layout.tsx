@@ -8,20 +8,20 @@ export default function RootLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: "Home",
           tabBarIcon: ({ color }) => (
             <FontAwesome size={28} name="home" color={color} />
           ),
+          tabBarShowLabel: false,
           headerShown: false
         }}
       />
       <Tabs.Screen
-        name="settings"
+        name="anggota"
         options={{
-          title: "Settings",
           tabBarIcon: ({ color }) => (
-            <FontAwesome size={28} name="cog" color={color} />
+            <FontAwesome size={28} name="users" color={color} />
           ),
+          tabBarShowLabel: false,
           headerShown: false
         }}
       />

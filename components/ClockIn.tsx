@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import { COLORS } from "@/constants/Colors";
 import DateLabel from "./DateLabel";
 import { BottomSheetMethods } from "@devvie/bottom-sheet";
+import { router } from "expo-router";
 
 const ClockIn = ({
   bottomSheet
@@ -31,7 +32,9 @@ const ClockIn = ({
           <TouchableHighlight
             style={styles.clockInBtn}
             underlayColor={COLORS.primaryUnderlay}
-            onPress={() => {}}
+            onPress={() => {
+              router.push("/admin");
+            }}
           >
             <View>
               <Text style={styles.clockInText}>Clock In</Text>
