@@ -11,9 +11,9 @@ const ClockInHistory = () => {
       <View style={styles.historyHeader}>
         <Text>Riwayat Kehadiran</Text>
 
-        <Link href={"/"} style={styles.seeOtherHistory}>
+        {/* <Link href={"/"} style={styles.seeOtherHistory}>
           Lihat Lainnya
-        </Link>
+        </Link> */}
       </View>
 
       {arr.map((item) => (

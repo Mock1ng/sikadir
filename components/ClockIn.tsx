@@ -4,6 +4,7 @@ import { COLORS } from "@/constants/Colors";
 import DateLabel from "./DateLabel";
 import { BottomSheetMethods } from "@devvie/bottom-sheet";
 import { router } from "expo-router";
+import { useSession } from "@/context";
 
 const ClockIn = ({
   bottomSheet
@@ -13,6 +14,7 @@ const ClockIn = ({
   const [isAbleClockIn, setIsAbleClockIn] = useState(true);
   const [isClockedIn, setIsClockedIn] = useState(false);
   const [isLate, setIsLate] = useState(false);
+  const { signOut } = useSession();
 
   return (
     <View style={styles.checkInWrapper}>
@@ -27,13 +29,13 @@ const ClockIn = ({
         <Text style={styles.clock}>07.30 - 16.00</Text>
       </View>
 
-      {isAbleClockIn && (
+      {isAbleClockIn && !isClockedIn && (
         <View>
           <TouchableHighlight
             style={styles.clockInBtn}
             underlayColor={COLORS.primaryUnderlay}
             onPress={() => {
-              router.push("/admin");
+              setIsClockedIn(true);
             }}
           >
             <View>
