@@ -17,10 +17,12 @@ import { StatusBar } from "expo-status-bar";
 
 import { BottomSheetMethods } from "@devvie/bottom-sheet";
 import AbsenceForm from "@/components/AbsenceForm";
+import { useSession } from "@/context";
 
 const HomeScreen = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const sheetRef = useRef<BottomSheetMethods>(null);
+  const { signOut } = useSession();
 
   return (
     <View style={{ backgroundColor: "#F9FAFC" }}>
@@ -45,7 +47,7 @@ const HomeScreen = () => {
           <View style={styles.container}>
             <View style={styles.head}>
               <Text style={styles.logo}>SIKADIR</Text>
-              <Pressable onPress={() => router.push("/login")}>
+              <Pressable onPress={signOut}>
                 <Ionicons name="log-out-outline" size={32} color={"#fff"} />
               </Pressable>
             </View>

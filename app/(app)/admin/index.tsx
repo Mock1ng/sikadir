@@ -12,9 +12,10 @@ import { StatusBar } from "expo-status-bar";
 import { COLORS } from "@/constants/Colors";
 import { Ionicons, FontAwesome } from "@expo/vector-icons";
 import AbsenceCard from "@/components/admin/AbsenceCard";
-import { router } from "expo-router";
+import { useSession } from "@/context";
 
 const AdminScreen = () => {
+  const { signOut } = useSession();
   const anggota = [1, 2, 3, 4, 5];
 
   return (
@@ -25,7 +26,7 @@ const AdminScreen = () => {
         <View style={styles.adminWrapper}>
           <View style={styles.adminHeader}>
             <Text style={styles.logo}>SIKADIR</Text>
-            <Pressable onPress={() => router.push("/login")}>
+            <Pressable onPress={signOut}>
               <Ionicons name="log-out-outline" size={32} color={"#000"} />
             </Pressable>
           </View>
