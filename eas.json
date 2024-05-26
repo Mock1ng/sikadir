@@ -3,14 +3,28 @@
     "version": ">= 9.1.0"
   },
   "build": {
+    "nodeVersion": {
+      "node": "20.9.0"
+    },
     "development": {
       "developmentClient": true,
-      "distribution": "internal"
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk",
+        "gradleCommand": ":app:assembleRelease"
+      }
     },
     "preview": {
       "distribution": "internal"
     },
-    "production": {}
+    "production": {
+      "extends": "nodeVersion",
+      "android": {
+        "buildType": "apk",
+        "gradleCommand": ":app:assembleRelease",
+        "resourceClass": "medium"
+      }
+    }
   },
   "submit": {
     "production": {}
