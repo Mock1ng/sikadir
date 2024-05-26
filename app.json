@@ -31,6 +31,15 @@
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "a88b8621-4e7e-4fef-a99f-e457c34103d8"
+      }
+    },
+    "owner": "mock1ng"
   }
 }
