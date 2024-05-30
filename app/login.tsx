@@ -30,7 +30,7 @@ const LoginScreen = () => {
     setIsSubmitting(true);
 
     setTimeout(() => {
-      if (password == "admin") {
+      if (password == "admin" || password == "Admin") {
         router.replace("/admin");
       } else {
         router.replace("/");
@@ -40,8 +40,8 @@ const LoginScreen = () => {
   };
 
   return (
-    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-      <>
+    <>
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <SafeAreaView
           style={{
             backgroundColor: "#fff",
@@ -161,24 +161,24 @@ const LoginScreen = () => {
             </View>
           </TouchableHighlight>
         </SafeAreaView>
+      </TouchableWithoutFeedback>
 
-        <View
-          style={{
-            display: isSubmitting ? "flex" : "none",
-            position: "absolute",
-            top: 0,
-            right: 0,
-            bottom: 0,
-            left: 0,
-            backgroundColor: "#00000050",
-            justifyContent: "center",
-            alignItems: "center"
-          }}
-        >
-          <ActivityIndicator size={"large"} color={COLORS.primary} />
-        </View>
-      </>
-    </TouchableWithoutFeedback>
+      <View
+        style={{
+          display: isSubmitting ? "flex" : "none",
+          position: "absolute",
+          top: 0,
+          right: 0,
+          bottom: 0,
+          left: 0,
+          backgroundColor: "#00000050",
+          justifyContent: "center",
+          alignItems: "center"
+        }}
+      >
+        <ActivityIndicator size={"large"} color={COLORS.primary} />
+      </View>
+    </>
   );
 };
 
