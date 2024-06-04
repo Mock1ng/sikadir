@@ -21,6 +21,7 @@ import {
   setDoc
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+import Toast from "react-native-toast-message";
 
 const FormAnggota = ({
   bottomSheet,
@@ -88,6 +89,13 @@ const FormAnggota = ({
   const addUser = async () => {
     if (password !== repassword) {
       console.log("password tidak sama");
+
+      Toast.show({
+        text1: "Password tidak sama!",
+        type: "error"
+      });
+
+      setIsLoading(false);
       return;
     }
 
@@ -100,6 +108,11 @@ const FormAnggota = ({
         password: password
       });
 
+      Toast.show({
+        text1: "Berhasil menambah user baru",
+        type: "success"
+      });
+
       setName("");
       setEmployeeId("");
       setUserClass("");
@@ -109,6 +122,11 @@ const FormAnggota = ({
       setSecureRepassword(true);
     } catch (error) {
       console.log(error);
+
+      Toast.show({
+        text1: "Gagal menambah user baru!",
+        type: "error"
+      });
     }
 
     setIsLoading(false);
@@ -125,12 +143,20 @@ const FormAnggota = ({
     const payload: dynamicType = {
       name: name,
       employeeId: employeeId,
-      class: userClass
+      class: userClass,
+      password: userSelected.password
     };
 
     if (password.length > 0) {
       if (password !== repassword) {
         console.log("password tidak sama");
+
+        Toast.show({
+          text1: "Password tidak sama!",
+          type: "error"
+        });
+
+        setIsLoading(false);
         return;
       }
 
@@ -147,8 +173,18 @@ const FormAnggota = ({
       setRepassword("");
       setSecurePassword(true);
       setSecureRepassword(true);
+
+      Toast.show({
+        text1: "Berhasil mengubah data user",
+        type: "success"
+      });
     } catch (error) {
       console.log(error);
+
+      Toast.show({
+        text1: "Gagal mengubah data user!",
+        type: "error"
+      });
     }
 
     setIsLoading(false);

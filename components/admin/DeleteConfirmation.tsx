@@ -11,6 +11,7 @@ import { BottomSheetMethods } from "@devvie/bottom-sheet";
 import { COLORS } from "@/constants/Colors";
 import { deleteDoc, doc, DocumentData } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+import Toast from "react-native-toast-message";
 
 const DeleteConfirmation = ({
   bottomSheet,
@@ -21,6 +22,7 @@ const DeleteConfirmation = ({
   setSheetHeight: React.Dispatch<React.SetStateAction<string | number>>;
   userSelected: DocumentData;
 }) => {
+  // const toast = useToast();
   const onLayout = useCallback(
     (event: { nativeEvent: { layout: { height: number } } }) => {
       const { height } = event.nativeEvent.layout;
@@ -32,7 +34,16 @@ const DeleteConfirmation = ({
   const deleteUser = async () => {
     try {
       await deleteDoc(doc(db, "user", userSelected.id));
+
+      Toast.show({
+        text1: "Berhasil hapus user",
+        type: "success"
+      });
     } catch (error) {
+      Toast.show({
+        text1: "Gagal hapus user!",
+        type: "error"
+      });
       console.log(error);
     }
 
@@ -40,31 +51,33 @@ const DeleteConfirmation = ({
   };
 
   return (
-    <TouchableWithoutFeedback onPress={Keyboard.dismiss} onLayout={onLayout}>
-      <View style={styles.deleteWrapper}>
-        <Text style={{ fontSize: 20 }}>
-          Apa Anda yakin ingin menghapus data?
-        </Text>
+    <>
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss} onLayout={onLayout}>
+        <View style={styles.deleteWrapper}>
+          <Text style={{ fontSize: 20 }}>
+            Apa Anda yakin ingin menghapus data?
+          </Text>
 
-        <View style={styles.btnsWrapper}>
-          <TouchableHighlight
-            style={styles.cancelBtn}
-            onPress={bottomSheet.current?.close}
-            underlayColor={"#d1d1d1"}
-          >
-            <Text>Batal</Text>
-          </TouchableHighlight>
+          <View style={styles.btnsWrapper}>
+            <TouchableHighlight
+              style={styles.cancelBtn}
+              onPress={bottomSheet.current?.close}
+              underlayColor={"#d1d1d1"}
+            >
+              <Text>Batal</Text>
+            </TouchableHighlight>
 
-          <TouchableHighlight
-            style={styles.deleteBtn}
-            underlayColor={COLORS.danger70}
-            onPress={deleteUser}
-          >
-            <Text style={{ color: "#fff" }}>Hapus</Text>
-          </TouchableHighlight>
+            <TouchableHighlight
+              style={styles.deleteBtn}
+              underlayColor={COLORS.danger70}
+              onPress={deleteUser}
+            >
+              <Text style={{ color: "#fff" }}>Hapus</Text>
+            </TouchableHighlight>
+          </View>
         </View>
-      </View>
-    </TouchableWithoutFeedback>
+      </TouchableWithoutFeedback>
+    </>
   );
 };
 

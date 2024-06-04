@@ -26,6 +26,7 @@ import {
   where
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+import Toast from "react-native-toast-message";
 
 type bottomSheetPurposeType = "edit" | "delete" | "add";
 
@@ -104,13 +105,14 @@ const AnggotaScreen = () => {
             />
           </View>
         </View>
-      </SafeAreaView>
 
-      <AnggotaBottomSheet
-        purpose={bottomSheetPurpose}
-        bottomSheet={bottomSheetRef}
-        userSelected={userSelected}
-      />
+        <AnggotaBottomSheet
+          purpose={bottomSheetPurpose}
+          bottomSheet={bottomSheetRef}
+          userSelected={userSelected}
+        />
+      </SafeAreaView>
+      <Toast />
     </>
   );
 };
