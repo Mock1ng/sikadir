@@ -9,13 +9,17 @@ import {
 import React, { useCallback, useState } from "react";
 import { BottomSheetMethods } from "@devvie/bottom-sheet";
 import { COLORS } from "@/constants/Colors";
+import { deleteDoc, doc, DocumentData } from "firebase/firestore";
+import { db } from "@/lib/firebase";
 
 const DeleteConfirmation = ({
   bottomSheet,
-  setSheetHeight
+  setSheetHeight,
+  userSelected
 }: {
   bottomSheet: React.RefObject<BottomSheetMethods>;
   setSheetHeight: React.Dispatch<React.SetStateAction<string | number>>;
+  userSelected: DocumentData;
 }) => {
   const onLayout = useCallback(
     (event: { nativeEvent: { layout: { height: number } } }) => {
@@ -24,6 +28,16 @@ const DeleteConfirmation = ({
     },
     []
   );
+
+  const deleteUser = async () => {
+    try {
+      await deleteDoc(doc(db, "user", userSelected.id));
+    } catch (error) {
+      console.log(error);
+    }
+
+    bottomSheet?.current?.close();
+  };
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss} onLayout={onLayout}>
@@ -44,6 +58,7 @@ const DeleteConfirmation = ({
           <TouchableHighlight
             style={styles.deleteBtn}
             underlayColor={COLORS.danger70}
+            onPress={deleteUser}
           >
             <Text style={{ color: "#fff" }}>Hapus</Text>
           </TouchableHighlight>

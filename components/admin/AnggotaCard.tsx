@@ -3,27 +3,32 @@ import React from "react";
 import { COLORS } from "@/constants/Colors";
 import { Ionicons } from "@expo/vector-icons";
 import { BottomSheetMethods } from "@devvie/bottom-sheet";
+import { DocumentData } from "firebase/firestore";
 
 type bottomSheetPurposeType = "edit" | "delete" | "add";
 
 const AnggotaCard = ({
   bottomSheetRef,
-  setBottomSheetPurpose
+  setBottomSheetPurpose,
+  user,
+  setUserSelected
 }: {
   bottomSheetRef: React.RefObject<BottomSheetMethods>;
   setBottomSheetPurpose: React.Dispatch<
     React.SetStateAction<bottomSheetPurposeType>
   >;
+  user: DocumentData;
+  setUserSelected: React.Dispatch<React.SetStateAction<DocumentData>>;
 }) => {
   return (
     <View style={styles.card}>
       <View style={styles.cardLeft}>
         <View style={styles.cardLeftTop}>
-          <Text style={styles.name}>Jogn Doe</Text>
-          <Text style={styles.class}>III/b</Text>
+          <Text style={styles.name}>{user?.name}</Text>
+          <Text style={styles.class}>{user?.class}</Text>
         </View>
 
-        <Text>123234345456456</Text>
+        <Text>{user?.employeeId}</Text>
       </View>
 
       <View style={styles.cardRight}>
@@ -31,6 +36,7 @@ const AnggotaCard = ({
           onPress={() => {
             setBottomSheetPurpose("edit");
             bottomSheetRef?.current?.open();
+            setUserSelected(user);
           }}
         >
           <Ionicons name="pencil" size={20} />
@@ -40,6 +46,7 @@ const AnggotaCard = ({
           onPress={() => {
             setBottomSheetPurpose("delete");
             bottomSheetRef?.current?.open();
+            setUserSelected(user);
           }}
         >
           <Ionicons name="trash" size={20} color={COLORS.danger} />

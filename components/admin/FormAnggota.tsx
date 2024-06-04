@@ -1,4 +1,5 @@
 import {
+  ActivityIndicator,
   Keyboard,
   Pressable,
   StyleSheet,
@@ -8,25 +9,51 @@ import {
   TouchableWithoutFeedback,
   View
 } from "react-native";
-import React, { useCallback } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { COLORS } from "@/constants/Colors";
 import { Ionicons } from "@expo/vector-icons";
 import { BottomSheetMethods } from "@devvie/bottom-sheet";
+import {
+  addDoc,
+  collection,
+  doc,
+  DocumentData,
+  setDoc
+} from "firebase/firestore";
+import { db } from "@/lib/firebase";
 
 const FormAnggota = ({
   bottomSheet,
   purpose,
-  setSheetHeight
+  setSheetHeight,
+  userSelected
 }: {
   bottomSheet: React.RefObject<BottomSheetMethods>;
   purpose: "add" | "edit";
   setSheetHeight: React.Dispatch<React.SetStateAction<string | number>>;
+  userSelected: DocumentData;
 }) => {
-  const dummyData = {
-    name: "John Doe",
-    NIP: "123234345456567",
-    class: "III/b"
-  };
+  const [name, setName] = useState("");
+  const [employeeId, setEmployeeId] = useState("");
+  const [userClass, setUserClass] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [isDisabled, setIsDisabled] = useState(true);
+
+  useEffect(() => {
+    setIsDisabled(false);
+
+    if (purpose == "add") {
+      if (name.length == 0 || employeeId.length == 0 || userClass.length == 0) {
+        setIsDisabled(true);
+      } else {
+        setIsDisabled(false);
+      }
+    }
+
+    if (isLoading) {
+      setIsDisabled(true);
+    }
+  }, [purpose, isLoading, name, employeeId, userClass]);
 
   const onLayout = useCallback(
     (event: { nativeEvent: { layout: { height: number } } }) => {
@@ -36,11 +63,62 @@ const FormAnggota = ({
     []
   );
 
+  useEffect(() => {
+    if (purpose == "edit") {
+      setName(userSelected.name);
+      setEmployeeId(userSelected.employeeId.toString());
+      setUserClass(userSelected.class);
+    } else {
+      setName("");
+      setEmployeeId("");
+      setUserClass("");
+    }
+  }, [purpose, userSelected]);
+
+  const addUser = async () => {
+    setIsLoading(true);
+    try {
+      await addDoc(collection(db, "user"), {
+        name: name,
+        employeeId: employeeId,
+        class: userClass
+      });
+
+      setName("");
+      setEmployeeId("");
+      setUserClass("");
+    } catch (error) {
+      console.log(error);
+    }
+
+    setIsLoading(false);
+    bottomSheet?.current?.close();
+  };
+
+  const editUser = async () => {
+    setIsLoading(true);
+
+    try {
+      await setDoc(doc(db, "user", userSelected.id), {
+        name: name,
+        employeeId: employeeId,
+        class: userClass
+      });
+    } catch (error) {
+      console.log(error);
+    }
+
+    setIsLoading(false);
+    bottomSheet?.current?.close();
+  };
+
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss} onLayout={onLayout}>
       <View style={styles.editWrapper}>
         <View style={styles.editHeader}>
-          <Pressable onPress={bottomSheet?.current?.close}>
+          <Pressable
+            onPress={isLoading ? () => {} : bottomSheet?.current?.close}
+          >
             <Ionicons name="close" size={22} />
           </Pressable>
           <Text style={styles.editHeaderText}>
@@ -55,7 +133,9 @@ const FormAnggota = ({
             <TextInput
               style={styles.formInput}
               placeholder="Masukkan nama lengkap"
-              defaultValue={purpose == "edit" ? dummyData.name : ""}
+              defaultValue={purpose == "edit" ? name : ""}
+              value={name}
+              onChangeText={(value) => setName(value)}
             />
           </View>
 
@@ -66,7 +146,9 @@ const FormAnggota = ({
               style={styles.formInput}
               placeholder="Masukkan nomor induk pegawai"
               keyboardType="numeric"
-              defaultValue={purpose == "edit" ? dummyData.NIP : ""}
+              defaultValue={purpose == "edit" ? employeeId : ""}
+              value={employeeId}
+              onChangeText={(value) => setEmployeeId(value)}
             />
           </View>
 
@@ -76,7 +158,9 @@ const FormAnggota = ({
             <TextInput
               style={styles.formInput}
               placeholder="Masukkan golongan"
-              defaultValue={purpose == "edit" ? dummyData.class : ""}
+              defaultValue={purpose == "edit" ? userClass : ""}
+              value={userClass}
+              onChangeText={(value) => setUserClass(value)}
             />
           </View>
 
@@ -101,11 +185,21 @@ const FormAnggota = ({
         </View>
 
         <TouchableHighlight
-          style={styles.editBtn}
+          style={[
+            styles.editBtn,
+            isDisabled ? styles.disabledBtn : styles.enabledBtn
+          ]}
           underlayColor={COLORS.primaryDarker}
-          onPress={() => console.log("edit")}
+          onPress={purpose == "edit" ? editUser : addUser}
+          disabled={isLoading}
         >
-          <Text style={{ color: "#fff" }}>Simpan Perubahan</Text>
+          <Text style={{ color: "#fff" }}>
+            {isLoading
+              ? "Loading..."
+              : purpose == "edit"
+              ? "Simpan Perubahan"
+              : "Tambah Anggota"}
+          </Text>
         </TouchableHighlight>
       </View>
     </TouchableWithoutFeedback>
@@ -148,9 +242,14 @@ const styles = StyleSheet.create({
     height: 40
   },
   editBtn: {
-    backgroundColor: COLORS.primary,
     borderRadius: 10,
     paddingVertical: 12,
     alignItems: "center"
+  },
+  enabledBtn: {
+    backgroundColor: COLORS.primary
+  },
+  disabledBtn: {
+    backgroundColor: "#aeaeae"
   }
 });

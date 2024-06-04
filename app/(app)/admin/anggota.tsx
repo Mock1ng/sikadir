@@ -1,11 +1,31 @@
-import { Pressable, StyleSheet, Text, View } from "react-native";
-import React, { useRef, useState } from "react";
+import {
+  FlatList,
+  Pressable,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableHighlight,
+  TouchableWithoutFeedback,
+  View
+} from "react-native";
+import React, { useEffect, useRef, useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { COLORS } from "@/constants/Colors";
 import AnggotaCard from "@/components/admin/AnggotaCard";
 import { BottomSheetMethods } from "@devvie/bottom-sheet";
 import AnggotaBottomSheet from "@/components/admin/AnggotaBottomSheet";
+import {
+  collection,
+  DocumentData,
+  limit,
+  onSnapshot,
+  orderBy,
+  query,
+  where
+} from "firebase/firestore";
+import { db } from "@/lib/firebase";
 
 type bottomSheetPurposeType = "edit" | "delete" | "add";
 
@@ -13,21 +33,51 @@ const AnggotaScreen = () => {
   const bottomSheetRef = useRef<BottomSheetMethods>(null);
   const [bottomSheetPurpose, setBottomSheetPurpose] =
     useState<bottomSheetPurposeType>("add");
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [users, setUsers] = useState<DocumentData[]>([]);
+  const [userSelected, setUserSelected] = useState<DocumentData>({});
 
-  const anggota = [1, 2, 3, 4, 5];
+  const getUser = async () => {
+    console.log("get user called");
+    setIsRefreshing(true);
+
+    try {
+      const unsubGetUser = onSnapshot(
+        query(collection(db, "user"), orderBy("name")),
+        (snapshots) => {
+          setUsers([]);
+          snapshots.forEach((doc) => {
+            const user = doc.data();
+            setUsers((prev) => [...prev, { ...user, id: doc.id }]);
+          });
+        }
+      );
+    } catch (error) {
+      console.log(error);
+    }
+
+    setIsRefreshing(false);
+  };
+
+  useEffect(() => {
+    getUser();
+  }, []);
 
   return (
     <>
-      <SafeAreaView>
+      <SafeAreaView style={{ flex: 1 }}>
         <View style={styles.anggotaWrapper}>
           <View style={styles.anggotaHeader}>
-            <Text style={styles.headerTitle}>Daftar Anggota</Text>
+            <TouchableWithoutFeedback onPress={getUser}>
+              <Text style={styles.headerTitle}>Daftar Anggota</Text>
+            </TouchableWithoutFeedback>
 
             <View style={styles.headerIcons}>
               <Pressable
                 onPress={() => {
                   bottomSheetRef.current?.open();
                   setBottomSheetPurpose("add");
+                  setUserSelected({});
                 }}
               >
                 <Ionicons name="person-add-outline" size={24} />
@@ -37,13 +87,21 @@ const AnggotaScreen = () => {
           </View>
 
           <View style={styles.listAnggota}>
-            {anggota.map((i) => (
-              <AnggotaCard
-                key={i}
-                bottomSheetRef={bottomSheetRef}
-                setBottomSheetPurpose={setBottomSheetPurpose}
-              />
-            ))}
+            <FlatList
+              data={users}
+              renderItem={({ item }) => (
+                <AnggotaCard
+                  bottomSheetRef={bottomSheetRef}
+                  setBottomSheetPurpose={setBottomSheetPurpose}
+                  user={item}
+                  setUserSelected={setUserSelected}
+                />
+              )}
+              onRefresh={getUser}
+              refreshing={isRefreshing}
+              ItemSeparatorComponent={() => <View style={{ height: 10 }} />}
+              nestedScrollEnabled
+            />
           </View>
         </View>
       </SafeAreaView>
@@ -51,6 +109,7 @@ const AnggotaScreen = () => {
       <AnggotaBottomSheet
         purpose={bottomSheetPurpose}
         bottomSheet={bottomSheetRef}
+        userSelected={userSelected}
       />
     </>
   );
@@ -61,10 +120,10 @@ export default AnggotaScreen;
 const styles = StyleSheet.create({
   anggotaWrapper: {
     backgroundColor: COLORS.background,
-    minHeight: "100%",
     paddingHorizontal: 10,
     paddingVertical: 24,
-    gap: 24
+    gap: 24,
+    minHeight: "100%"
   },
   anggotaHeader: {
     flexDirection: "row",
