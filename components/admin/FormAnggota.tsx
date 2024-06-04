@@ -36,6 +36,10 @@ const FormAnggota = ({
   const [name, setName] = useState("");
   const [employeeId, setEmployeeId] = useState("");
   const [userClass, setUserClass] = useState("");
+  const [password, setPassword] = useState("");
+  const [securePassword, setSecurePassword] = useState(true);
+  const [secureRepassword, setSecureRepassword] = useState(true);
+  const [repassword, setRepassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isDisabled, setIsDisabled] = useState(true);
 
@@ -43,7 +47,13 @@ const FormAnggota = ({
     setIsDisabled(false);
 
     if (purpose == "add") {
-      if (name.length == 0 || employeeId.length == 0 || userClass.length == 0) {
+      if (
+        name.length == 0 ||
+        employeeId.length == 0 ||
+        userClass.length == 0 ||
+        password.length == 0 ||
+        repassword.length == 0
+      ) {
         setIsDisabled(true);
       } else {
         setIsDisabled(false);
@@ -53,7 +63,7 @@ const FormAnggota = ({
     if (isLoading) {
       setIsDisabled(true);
     }
-  }, [purpose, isLoading, name, employeeId, userClass]);
+  }, [purpose, isLoading, name, employeeId, userClass, password, repassword]);
 
   const onLayout = useCallback(
     (event: { nativeEvent: { layout: { height: number } } }) => {
@@ -76,17 +86,27 @@ const FormAnggota = ({
   }, [purpose, userSelected]);
 
   const addUser = async () => {
+    if (password !== repassword) {
+      console.log("password tidak sama");
+      return;
+    }
+
     setIsLoading(true);
     try {
       await addDoc(collection(db, "user"), {
         name: name,
         employeeId: employeeId,
-        class: userClass
+        class: userClass,
+        password: password
       });
 
       setName("");
       setEmployeeId("");
       setUserClass("");
+      setPassword("");
+      setRepassword("");
+      setSecurePassword(true);
+      setSecureRepassword(true);
     } catch (error) {
       console.log(error);
     }
@@ -98,12 +118,35 @@ const FormAnggota = ({
   const editUser = async () => {
     setIsLoading(true);
 
+    type dynamicType = {
+      [key: string]: any;
+    };
+
+    const payload: dynamicType = {
+      name: name,
+      employeeId: employeeId,
+      class: userClass
+    };
+
+    if (password.length > 0) {
+      if (password !== repassword) {
+        console.log("password tidak sama");
+        return;
+      }
+
+      payload.password = password;
+    }
+
     try {
-      await setDoc(doc(db, "user", userSelected.id), {
-        name: name,
-        employeeId: employeeId,
-        class: userClass
-      });
+      await setDoc(doc(db, "user", userSelected.id), payload);
+
+      setName("");
+      setEmployeeId("");
+      setUserClass("");
+      setPassword("");
+      setRepassword("");
+      setSecurePassword(true);
+      setSecureRepassword(true);
     } catch (error) {
       console.log(error);
     }
@@ -167,20 +210,44 @@ const FormAnggota = ({
           <View style={styles.formField}>
             <Text style={styles.formTitle}>Password Baru</Text>
 
-            <TextInput
-              style={styles.formInput}
-              placeholder="Masukkan password baru"
-              keyboardType="visible-password"
-            />
+            <View style={{ flexDirection: "row", alignItems: "center" }}>
+              <TextInput
+                style={styles.formInput}
+                placeholder="Masukkan password baru"
+                value={password}
+                onChangeText={(value) => setPassword(value)}
+                secureTextEntry={securePassword}
+                autoCapitalize="none"
+              />
+              <Ionicons
+                name={securePassword ? "eye-off" : "eye"}
+                style={{ position: "absolute", right: 10 }}
+                size={16}
+                onPress={() => setSecurePassword((prev) => !prev)}
+              />
+            </View>
           </View>
 
           <View style={styles.formField}>
             <Text style={styles.formTitle}>Ulangi Password Baru</Text>
 
-            <TextInput
-              style={styles.formInput}
-              placeholder="Ulangi password baru"
-            />
+            <View style={{ flexDirection: "row", alignItems: "center" }}>
+              <TextInput
+                style={styles.formInput}
+                placeholder="Ulangi password baru"
+                value={repassword}
+                onChangeText={(value) => setRepassword(value)}
+                secureTextEntry={secureRepassword}
+                autoCapitalize="none"
+              />
+
+              <Ionicons
+                name={secureRepassword ? "eye-off" : "eye"}
+                style={{ position: "absolute", right: 10 }}
+                size={16}
+                onPress={() => setSecureRepassword((prev) => !prev)}
+              />
+            </View>
           </View>
         </View>
 
@@ -239,7 +306,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: 10,
     paddingHorizontal: 15,
-    height: 40
+    height: 40,
+    width: "100%"
   },
   editBtn: {
     borderRadius: 10,
