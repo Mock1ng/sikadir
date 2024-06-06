@@ -1,8 +1,13 @@
 import { StyleSheet, Text, View } from "react-native";
 import React from "react";
 import DateLabel from "../DateLabel";
+import usedate from "@/hooks/useDate";
 
 const AbsenceCard = () => {
+  const { dayFull, date, monthFull, year } = usedate(
+    new Date(2024, 12, 5).toISOString()
+  );
+
   return (
     <View style={styles.absenceWrapper}>
       <View style={styles.cardHeader}>
@@ -11,7 +16,7 @@ const AbsenceCard = () => {
           <Text style={styles.class}>III/b</Text>
         </View>
 
-        <DateLabel />
+        <DateLabel date={`${dayFull}, ${date} ${monthFull} ${year}`} />
       </View>
 
       <View>

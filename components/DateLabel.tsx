@@ -2,10 +2,10 @@ import { StyleSheet, Text, View } from "react-native";
 import React from "react";
 import { COLORS } from "@/constants/Colors";
 
-const DateLabel = () => {
+const DateLabel = ({ date }: { date: string }) => {
   return (
     <View style={styles.dateWrapper}>
-      <Text style={styles.date}>Senin, 13 Mei 2024</Text>
+      <Text style={styles.date}>{date}</Text>
     </View>
   );
 };

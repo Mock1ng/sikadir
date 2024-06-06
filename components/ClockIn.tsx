@@ -3,8 +3,7 @@ import React, { useState } from "react";
 import { COLORS } from "@/constants/Colors";
 import DateLabel from "./DateLabel";
 import { BottomSheetMethods } from "@devvie/bottom-sheet";
-import { router } from "expo-router";
-import { useSession } from "@/context";
+import useDate from "@/hooks/useDate";
 
 const ClockIn = ({
   bottomSheet
@@ -14,13 +13,13 @@ const ClockIn = ({
   const [isAbleClockIn, setIsAbleClockIn] = useState(true);
   const [isClockedIn, setIsClockedIn] = useState(false);
   const [isLate, setIsLate] = useState(false);
-  const { signOut } = useSession();
+  const { dayFull, date, monthFull, year } = useDate(new Date().toISOString());
 
   return (
     <View style={styles.checkInWrapper}>
       <View style={styles.clockInHeader}>
         <Text>Hari ini</Text>
-        <DateLabel />
+        <DateLabel date={`${dayFull}, ${date} ${monthFull} ${year}`} />
       </View>
 
       <View style={{ borderBottomWidth: 1, borderColor: "#aeaeae" }} />

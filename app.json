@@ -41,6 +41,12 @@
         "projectId": "a88b8621-4e7e-4fef-a99f-e457c34103d8"
       }
     },
-    "owner": "mock1ng"
+    "owner": "mock1ng",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/a88b8621-4e7e-4fef-a99f-e457c34103d8"
+    }
   }
 }
