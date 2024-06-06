@@ -1,13 +1,10 @@
 import {
   FlatList,
   Pressable,
-  RefreshControl,
-  ScrollView,
   StyleSheet,
   Text,
-  TouchableHighlight,
-  TouchableWithoutFeedback,
-  View
+  View,
+  ActivityIndicator
 } from "react-native";
 import React, { useEffect, useRef, useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -19,7 +16,6 @@ import AnggotaBottomSheet from "@/components/admin/AnggotaBottomSheet";
 import {
   collection,
   DocumentData,
-  limit,
   onSnapshot,
   orderBy,
   query,
@@ -37,26 +33,37 @@ const AnggotaScreen = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [users, setUsers] = useState<DocumentData[]>([]);
   const [userSelected, setUserSelected] = useState<DocumentData>({});
+  const [isLoading, setIsLoading] = useState(false);
 
   const getUser = async () => {
     console.log("get user called");
     setIsRefreshing(true);
+    setIsLoading(true);
 
     try {
       const unsubGetUser = onSnapshot(
-        query(collection(db, "user"), orderBy("name")),
+        query(
+          collection(db, "user"),
+          orderBy("name"),
+          where("role", "==", "anggota")
+        ),
         (snapshots) => {
           setUsers([]);
+          const tempUsers: DocumentData[] = [];
+
           snapshots.forEach((doc) => {
             const user = doc.data();
-            setUsers((prev) => [...prev, { ...user, id: doc.id }]);
+            tempUsers.push({ ...user, id: doc.id });
           });
+
+          setUsers(tempUsers);
         }
       );
     } catch (error) {
       console.log(error);
     }
 
+    setIsLoading(false);
     setIsRefreshing(false);
   };
 
@@ -69,9 +76,7 @@ const AnggotaScreen = () => {
       <SafeAreaView style={{ flex: 1 }}>
         <View style={styles.anggotaWrapper}>
           <View style={styles.anggotaHeader}>
-            <TouchableWithoutFeedback onPress={getUser}>
-              <Text style={styles.headerTitle}>Daftar Anggota</Text>
-            </TouchableWithoutFeedback>
+            <Text style={styles.headerTitle}>Daftar Anggota</Text>
 
             <View style={styles.headerIcons}>
               <Pressable
@@ -87,22 +92,34 @@ const AnggotaScreen = () => {
             </View>
           </View>
 
+          {users.length == 0 && (
+            <View>
+              <Text>Belum ada anggota</Text>
+            </View>
+          )}
+
           <View style={styles.listAnggota}>
-            <FlatList
-              data={users}
-              renderItem={({ item }) => (
-                <AnggotaCard
-                  bottomSheetRef={bottomSheetRef}
-                  setBottomSheetPurpose={setBottomSheetPurpose}
-                  user={item}
-                  setUserSelected={setUserSelected}
-                />
-              )}
-              onRefresh={getUser}
-              refreshing={isRefreshing}
-              ItemSeparatorComponent={() => <View style={{ height: 10 }} />}
-              nestedScrollEnabled
-            />
+            {isLoading && (
+              <ActivityIndicator size={"large"} color={COLORS.primary} />
+            )}
+
+            {!isLoading && users.length > 0 && (
+              <FlatList
+                data={users}
+                renderItem={({ item }) => (
+                  <AnggotaCard
+                    bottomSheetRef={bottomSheetRef}
+                    setBottomSheetPurpose={setBottomSheetPurpose}
+                    user={item}
+                    setUserSelected={setUserSelected}
+                  />
+                )}
+                onRefresh={getUser}
+                refreshing={isRefreshing}
+                ItemSeparatorComponent={() => <View style={{ height: 10 }} />}
+                nestedScrollEnabled
+              />
+            )}
           </View>
         </View>
 
@@ -123,9 +140,9 @@ const styles = StyleSheet.create({
   anggotaWrapper: {
     backgroundColor: COLORS.background,
     paddingHorizontal: 10,
-    paddingVertical: 24,
+    paddingTop: 24,
     gap: 24,
-    minHeight: "100%"
+    flex: 1
   },
   anggotaHeader: {
     flexDirection: "row",
@@ -142,6 +159,10 @@ const styles = StyleSheet.create({
     gap: 10
   },
   listAnggota: {
-    gap: 10
+    gap: 10,
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "stretch",
+    paddingBottom: 0
   }
 });

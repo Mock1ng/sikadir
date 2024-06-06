@@ -22,7 +22,7 @@ const DeleteConfirmation = ({
   setSheetHeight: React.Dispatch<React.SetStateAction<string | number>>;
   userSelected: DocumentData;
 }) => {
-  // const toast = useToast();
+  const [isLoading, setIsLoading] = useState(false);
   const onLayout = useCallback(
     (event: { nativeEvent: { layout: { height: number } } }) => {
       const { height } = event.nativeEvent.layout;
@@ -32,6 +32,8 @@ const DeleteConfirmation = ({
   );
 
   const deleteUser = async () => {
+    setIsLoading(true);
+
     try {
       await deleteDoc(doc(db, "user", userSelected.id));
 
@@ -48,6 +50,7 @@ const DeleteConfirmation = ({
     }
 
     bottomSheet?.current?.close();
+    setIsLoading(false);
   };
 
   return (
@@ -68,9 +71,14 @@ const DeleteConfirmation = ({
             </TouchableHighlight>
 
             <TouchableHighlight
-              style={styles.deleteBtn}
+              style={
+                isLoading
+                  ? { ...styles.deleteBtn, backgroundColor: "grey" }
+                  : styles.deleteBtn
+              }
               underlayColor={COLORS.danger70}
               onPress={deleteUser}
+              disabled={isLoading}
             >
               <Text style={{ color: "#fff" }}>Hapus</Text>
             </TouchableHighlight>

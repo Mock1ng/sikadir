@@ -41,6 +41,7 @@ const FormAnggota = ({
   const [securePassword, setSecurePassword] = useState(true);
   const [secureRepassword, setSecureRepassword] = useState(true);
   const [repassword, setRepassword] = useState("");
+  const [role, _] = useState("anggota");
   const [isLoading, setIsLoading] = useState(false);
   const [isDisabled, setIsDisabled] = useState(true);
 
@@ -105,7 +106,8 @@ const FormAnggota = ({
         name: name,
         employeeId: employeeId,
         class: userClass,
-        password: password
+        password: password,
+        role: role
       });
 
       Toast.show({
@@ -144,7 +146,8 @@ const FormAnggota = ({
       name: name,
       employeeId: employeeId,
       class: userClass,
-      password: userSelected.password
+      password: userSelected.password,
+      role: role
     };
 
     if (password.length > 0) {
