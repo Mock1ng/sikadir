@@ -9,7 +9,7 @@ import "react-native-reanimated";
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
-  const { session } = useSession();
+  const { authId } = useSession();
   const [loaded] = useFonts({
     SpaceMono: require("../../assets/fonts/SpaceMono-Regular.ttf")
   });
@@ -24,7 +24,7 @@ export default function RootLayout() {
     return null;
   }
 
-  if (!session) {
+  if (!authId) {
     return <Redirect href={"/login"} />;
   }
 

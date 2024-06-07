@@ -15,28 +15,60 @@ import { Ionicons } from "@expo/vector-icons";
 import { COLORS } from "@/constants/Colors";
 import { router } from "expo-router";
 import { useSession } from "@/context";
+import { collection, getDocs, query, where } from "firebase/firestore";
+import { db } from "@/lib/firebase";
+import Toast from "react-native-toast-message";
 
 const LoginScreen = () => {
-  const { signIn, session } = useSession();
+  const { signIn, authId } = useSession();
   const [isSaveNip, setIsSaveNip] = useState(false);
   const [nip, setNip] = useState("");
   const [password, setPassword] = useState("");
   const [securePassword, setSecurePassword] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const onSubmit = () => {
-    Keyboard.dismiss();
-    signIn(password);
+  const getUser = async (nip: string) => {
     setIsSubmitting(true);
 
-    setTimeout(() => {
-      if (password == "admin" || password == "Admin") {
-        router.replace("/admin");
+    const res = await getDocs(
+      query(collection(db, "user"), where("employeeId", "==", nip))
+    );
+
+    setIsSubmitting(false);
+
+    if (res.empty) {
+      console.log("nip atau password salah");
+      Toast.show({
+        text1: "data anggota tidak ditemukan!",
+        type: "error"
+      });
+
+      return;
+    }
+
+    res.forEach((doc) => {
+      const data = doc.data();
+
+      if (password === data.password) {
+        signIn(doc.id);
+
+        if (data.role == "admin") {
+          router.push("/admin");
+        } else {
+          router.push("/");
+        }
       } else {
-        router.replace("/");
+        Toast.show({
+          text1: "password salah!",
+          type: "error"
+        });
       }
-      setIsSubmitting(false);
-    }, 2000);
+    });
+  };
+
+  const onSubmit = () => {
+    Keyboard.dismiss();
+    getUser(nip);
   };
 
   return (
@@ -52,7 +84,9 @@ const LoginScreen = () => {
             gap: 24
           }}
         >
-          <Text style={{ fontSize: 48, fontWeight: "800" }}>SIKADIR</Text>
+          <Text style={{ fontSize: 48, fontWeight: "800" }}>
+            SIKADIR {authId}
+          </Text>
 
           <View style={{}}>
             <Text
@@ -178,6 +212,8 @@ const LoginScreen = () => {
       >
         <ActivityIndicator size={"large"} color={COLORS.primary} />
       </View>
+
+      <Toast />
     </>
   );
 };

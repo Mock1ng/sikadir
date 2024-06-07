@@ -6,7 +6,7 @@ import {
   Text,
   View
 } from "react-native";
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { COLORS } from "@/constants/Colors";
@@ -18,11 +18,25 @@ import { StatusBar } from "expo-status-bar";
 import { BottomSheetMethods } from "@devvie/bottom-sheet";
 import AbsenceForm from "@/components/AbsenceForm";
 import { useSession } from "@/context";
+import { doc, DocumentData, getDoc } from "firebase/firestore";
+import { db } from "@/lib/firebase";
 
 const HomeScreen = () => {
-  const [isRefreshing, setIsRefreshing] = useState(false);
   const sheetRef = useRef<BottomSheetMethods>(null);
-  const { signOut } = useSession();
+  const { signOut, authId } = useSession();
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [user, setUser] = useState<DocumentData | undefined>({});
+
+  const getUser = async () => {
+    if (!authId) return;
+
+    const res = await getDoc(doc(db, "user", authId));
+    setUser({ ...res.data(), id: res.id });
+  };
+
+  useEffect(() => {
+    getUser();
+  }, []);
 
   return (
     <View style={{ backgroundColor: "#F9FAFC" }}>
@@ -53,8 +67,8 @@ const HomeScreen = () => {
             </View>
 
             <View>
-              <Text style={styles.name}>John Doe</Text>
-              <Text style={styles.class}>III/b</Text>
+              <Text style={styles.name}>{user?.name}</Text>
+              <Text style={styles.class}>{user?.class}</Text>
             </View>
 
             <ClockIn bottomSheet={sheetRef} />

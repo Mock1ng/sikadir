@@ -2,13 +2,13 @@ import React from "react";
 import { useSessionStorageState } from "./useStorageState";
 
 const AuthContext = React.createContext<{
-  signIn: (role: string) => void;
+  signIn: (id: string) => void;
   signOut: () => void;
-  session?: string | null;
+  authId?: string | null;
 }>({
   signIn: () => null,
   signOut: () => null,
-  session: ""
+  authId: ""
 });
 
 // This hook can be used to access the user info.
@@ -24,19 +24,18 @@ export function useSession() {
 }
 
 export function SessionProvider(props: React.PropsWithChildren) {
-  const [session, setSession] = useSessionStorageState("session");
+  const [authId, setAuthId] = useSessionStorageState("authId");
 
   return (
     <AuthContext.Provider
       value={{
-        signIn: (role: string | null) => {
-          // Perform sign-in logic here
-          setSession(role);
+        signIn: (id: string) => {
+          setAuthId(id);
         },
         signOut: () => {
-          setSession(null);
+          setAuthId(null);
         },
-        session
+        authId
       }}
     >
       {props.children}
