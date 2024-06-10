@@ -10,7 +10,6 @@ import React, { useState, useRef, useEffect } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { COLORS } from "@/constants/Colors";
-import { router } from "expo-router";
 import ClockIn from "@/components/ClockIn";
 import ClockInHistory from "@/components/ClockInHistory";
 import { StatusBar } from "expo-status-bar";
@@ -20,12 +19,15 @@ import AbsenceForm from "@/components/AbsenceForm";
 import { useSession } from "@/context";
 import { doc, DocumentData, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+import Toast from "react-native-toast-message";
+import useLocation from "@/hooks/useLocation";
 
 const HomeScreen = () => {
   const sheetRef = useRef<BottomSheetMethods>(null);
   const { signOut, authId } = useSession();
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [user, setUser] = useState<DocumentData | undefined>({});
+  const { checkEnableLocation } = useLocation();
 
   const getUser = async () => {
     if (!authId) return;
@@ -38,48 +40,56 @@ const HomeScreen = () => {
     getUser();
   }, []);
 
+  useEffect(() => {
+    checkEnableLocation();
+  }, []);
+
   return (
-    <View style={{ backgroundColor: "#F9FAFC" }}>
-      <SafeAreaView>
-        <StatusBar style="light" backgroundColor={COLORS.primary} />
+    <>
+      <View style={{ backgroundColor: "#F9FAFC" }}>
+        <SafeAreaView>
+          <StatusBar style="light" backgroundColor={COLORS.primary} />
 
-        <ScrollView
-          refreshControl={
-            <RefreshControl
-              refreshing={isRefreshing}
-              onRefresh={() => {
-                setIsRefreshing(true);
+          <ScrollView
+            refreshControl={
+              <RefreshControl
+                refreshing={isRefreshing}
+                onRefresh={() => {
+                  setIsRefreshing(true);
 
-                setTimeout(() => {
-                  setIsRefreshing(false);
-                  console.log("refresh");
-                }, 3000);
-              }}
-            />
-          }
-        >
-          <View style={styles.container}>
-            <View style={styles.head}>
-              <Text style={styles.logo}>SIKADIR</Text>
-              <Pressable onPress={signOut}>
-                <Ionicons name="log-out-outline" size={32} color={"#fff"} />
-              </Pressable>
+                  setTimeout(() => {
+                    setIsRefreshing(false);
+                    console.log("refresh");
+                  }, 3000);
+                }}
+              />
+            }
+          >
+            <View style={styles.container}>
+              <View style={styles.head}>
+                <Text style={styles.logo}>SIKADIR</Text>
+                <Pressable onPress={signOut}>
+                  <Ionicons name="log-out-outline" size={32} color={"#fff"} />
+                </Pressable>
+              </View>
+
+              <View>
+                <Text style={styles.name}>{user?.name}</Text>
+                <Text style={styles.class}>{user?.class}</Text>
+              </View>
+
+              <ClockIn bottomSheet={sheetRef} />
             </View>
 
-            <View>
-              <Text style={styles.name}>{user?.name}</Text>
-              <Text style={styles.class}>{user?.class}</Text>
-            </View>
+            <ClockInHistory />
+          </ScrollView>
+        </SafeAreaView>
 
-            <ClockIn bottomSheet={sheetRef} />
-          </View>
+        <AbsenceForm bottomSheet={sheetRef} />
+      </View>
 
-          <ClockInHistory />
-        </ScrollView>
-      </SafeAreaView>
-
-      <AbsenceForm bottomSheet={sheetRef} />
-    </View>
+      <Toast />
+    </>
   );
 };
 

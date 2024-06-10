@@ -1,4 +1,4 @@
-const usedate = (isoDate: string | undefined) => {
+const useDate = (isoDate: string | undefined) => {
   const day = new Date(isoDate ?? "").getDay();
   const date = new Date(isoDate ?? "").getDate();
   const month = new Date(isoDate ?? "").getMonth();
@@ -79,4 +79,4 @@ const usedate = (isoDate: string | undefined) => {
   return { dayFull, date, monthFull, year };
 };
 
-export default usedate;
+export default useDate;

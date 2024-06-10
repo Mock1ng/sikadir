@@ -18,6 +18,7 @@ import { useSession } from "@/context";
 import { collection, getDocs, query, where } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import Toast from "react-native-toast-message";
+import { StatusBar } from "expo-status-bar";
 
 const LoginScreen = () => {
   const { signIn, authId } = useSession();
@@ -73,10 +74,11 @@ const LoginScreen = () => {
 
   return (
     <>
+      <StatusBar style="dark" backgroundColor={COLORS.background} />
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <SafeAreaView
           style={{
-            backgroundColor: "#fff",
+            backgroundColor: COLORS.background,
             flex: 1,
             alignItems: "center",
             paddingTop: 50,
