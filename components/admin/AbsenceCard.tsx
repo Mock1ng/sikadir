@@ -1,19 +1,18 @@
 import { StyleSheet, Text, View } from "react-native";
 import React from "react";
 import DateLabel from "../DateLabel";
-import usedate from "@/hooks/useDate";
+import useDate from "@/hooks/useDate";
+import { DocumentData } from "firebase/firestore";
 
-const AbsenceCard = () => {
-  const { dayFull, date, monthFull, year } = usedate(
-    new Date(2024, 12, 5).toISOString()
-  );
+const AbsenceCard = ({ data }: { data: DocumentData }) => {
+  const { dayFull, date, monthFull, year, hours, minutes } = useDate(data.iso);
 
   return (
     <View style={styles.absenceWrapper}>
       <View style={styles.cardHeader}>
         <View style={styles.headerLeft}>
-          <Text style={styles.name}>John Doe</Text>
-          <Text style={styles.class}>III/b</Text>
+          <Text style={styles.name}>{data.user.name}</Text>
+          <Text style={styles.class}>{data.user.class}</Text>
         </View>
 
         <DateLabel date={`${dayFull}, ${date} ${monthFull} ${year}`} />
@@ -26,7 +25,9 @@ const AbsenceCard = () => {
         </View>
 
         <View style={styles.justifyBetween}>
-          <Text style={styles.contentValue}>08.33</Text>
+          <Text style={styles.contentValue}>
+            {hours}.{minutes}
+          </Text>
           <Text style={styles.contentValue}>07.30 - 16.00</Text>
         </View>
       </View>

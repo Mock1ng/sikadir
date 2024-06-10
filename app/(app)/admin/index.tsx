@@ -6,17 +6,76 @@ import {
   TouchableHighlight,
   View
 } from "react-native";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import { COLORS } from "@/constants/Colors";
 import { Ionicons, FontAwesome } from "@expo/vector-icons";
 import AbsenceCard from "@/components/admin/AbsenceCard";
 import { useSession } from "@/context";
+import {
+  collection,
+  doc,
+  DocumentData,
+  getDoc,
+  onSnapshot,
+  orderBy,
+  query,
+  where
+} from "firebase/firestore";
+import { db } from "@/lib/firebase";
+import useDate from "@/hooks/useDate";
 
 const AdminScreen = () => {
   const { signOut } = useSession();
-  const anggota = [1, 2, 3, 4, 5];
+  const [isLoading, setIsLoading] = useState(false);
+  const [clockInList, setClockInList] = useState<DocumentData[]>([]);
+
+  const getClockIn = () => {
+    setIsLoading(true);
+
+    const { year, month, date } = useDate(new Date().toISOString());
+
+    onSnapshot(
+      query(
+        collection(db, "presence"),
+        where("date", ">=", `${year}-${month}-1`),
+        where("date", "<=", `${year}-${month}-31`),
+        orderBy("iso", "desc")
+      ),
+      (snapshot) => {
+        if (snapshot.empty) {
+          console.log("no history");
+
+          setClockInList([]);
+        } else {
+          const history: DocumentData[] = [];
+
+          snapshot.forEach(async (item) => {
+            const res = await getDoc(doc(db, "user", item.data().user));
+            history.push({
+              ...item.data(),
+              id: item.id,
+              user: { ...res.data(), id: res.id }
+            });
+
+            setClockInList((prev) => [
+              ...prev,
+              {
+                ...item.data(),
+                id: item.id,
+                user: { ...res.data(), id: res.id }
+              }
+            ]);
+          });
+        }
+      }
+    );
+  };
+
+  useEffect(() => {
+    getClockIn();
+  }, []);
 
   return (
     <SafeAreaView>
@@ -47,8 +106,8 @@ const AdminScreen = () => {
           </View>
 
           <View style={styles.absencesWrapper}>
-            {anggota.map((i) => (
-              <AbsenceCard key={i} />
+            {clockInList.map((data) => (
+              <AbsenceCard key={data.id} data={data} />
             ))}
           </View>
         </View>

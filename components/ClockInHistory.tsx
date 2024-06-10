@@ -22,11 +22,12 @@ const ClockInHistory = () => {
       query(
         collection(db, "presence"),
         where("user", "==", authId),
-        orderBy("desc")
+        orderBy("iso", "desc")
       ),
       (snapshot) => {
         if (snapshot.empty) {
           setClockInHistory([]);
+          console.log("history user tidak ada");
         } else {
           const history: DocumentData[] = [];
 

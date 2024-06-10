@@ -37,7 +37,7 @@ const ClockIn = ({
       if (isGranted) {
         try {
           await addDoc(collection(db, "presence"), {
-            date: `${year}-${10}-${25}`,
+            date: `${year}-${month}-${date}`,
             type: "HADIR",
             user: authId,
             iso: new Date().toISOString()
