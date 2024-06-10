@@ -1,11 +1,51 @@
 import { StyleSheet, Text, View } from "react-native";
-import React from "react";
-import { Link } from "expo-router";
+import React, { useEffect, useState } from "react";
 import { COLORS } from "@/constants/Colors";
 import HistoryCard from "./HistoryCard";
+import {
+  collection,
+  DocumentData,
+  onSnapshot,
+  orderBy,
+  query,
+  where
+} from "firebase/firestore";
+import { db } from "@/lib/firebase";
+import { useSession } from "@/context";
 
 const ClockInHistory = () => {
-  const arr = [1, 2, 3, 4, 5];
+  const { authId } = useSession();
+  const [clockInHistory, setClockInHistory] = useState<DocumentData[]>([]);
+
+  const getHistory = () => {
+    onSnapshot(
+      query(
+        collection(db, "presence"),
+        where("user", "==", authId),
+        orderBy("desc")
+      ),
+      (snapshot) => {
+        if (snapshot.empty) {
+          setClockInHistory([]);
+        } else {
+          const history: DocumentData[] = [];
+
+          snapshot.forEach((doc) => {
+            history.push({ ...doc.data(), id: doc.id });
+          });
+
+          setClockInHistory(history);
+        }
+      }
+    );
+  };
+
+  useEffect(() => {
+    if (!authId) return;
+
+    getHistory();
+  }, [authId]);
+
   return (
     <View style={styles.historyWrapper}>
       <View style={styles.historyHeader}>
@@ -16,8 +56,8 @@ const ClockInHistory = () => {
         </Link> */}
       </View>
 
-      {arr.map((item) => (
-        <HistoryCard key={item} />
+      {clockInHistory.map((item) => (
+        <HistoryCard key={item.id} data={item} />
       ))}
     </View>
   );

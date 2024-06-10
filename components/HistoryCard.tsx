@@ -1,12 +1,11 @@
 import { StyleSheet, Text, View } from "react-native";
 import React from "react";
 import DateLabel from "./DateLabel";
-import usedate from "@/hooks/useDate";
+import useDate from "@/hooks/useDate";
+import { DocumentData } from "firebase/firestore";
 
-const HistoryCard = () => {
-  const { dayFull, date, monthFull, year } = usedate(
-    new Date(2024, 12, 5).toISOString()
-  );
+const HistoryCard = ({ data }: { data: DocumentData }) => {
+  const { dayFull, date, monthFull, year, hours, minutes } = useDate(data.iso);
 
   return (
     <View style={styles.card}>
@@ -19,7 +18,9 @@ const HistoryCard = () => {
         </View>
 
         <View style={styles.justifyBetween}>
-          <Text style={styles.fontBold16}>08.33</Text>
+          <Text style={styles.fontBold16}>
+            {hours}.{minutes}
+          </Text>
           <Text style={styles.fontBold16}>07.30 - 16.00</Text>
         </View>
       </View>

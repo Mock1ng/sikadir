@@ -86,9 +86,7 @@ const LoginScreen = () => {
             gap: 24
           }}
         >
-          <Text style={{ fontSize: 48, fontWeight: "800" }}>
-            SIKADIR {authId}
-          </Text>
+          <Text style={{ fontSize: 48, fontWeight: "800" }}>SIKADIR</Text>
 
           <View style={{}}>
             <Text

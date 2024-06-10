@@ -3,6 +3,8 @@ const useDate = (isoDate: string | undefined) => {
   const date = new Date(isoDate ?? "").getDate();
   const month = new Date(isoDate ?? "").getMonth();
   const year = new Date(isoDate ?? "").getFullYear();
+  const hours = new Date(isoDate ?? "").getHours();
+  const minutes = new Date(isoDate ?? "").getMinutes();
 
   let dayFull = "";
   let monthFull = "";
@@ -76,7 +78,7 @@ const useDate = (isoDate: string | undefined) => {
       break;
   }
 
-  return { dayFull, date, monthFull, year };
+  return { dayFull, date, monthFull, year, month: month + 1, hours, minutes };
 };
 
 export default useDate;

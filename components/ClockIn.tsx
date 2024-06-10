@@ -1,9 +1,14 @@
 import { StyleSheet, Text, TouchableHighlight, View } from "react-native";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { COLORS } from "@/constants/Colors";
 import DateLabel from "./DateLabel";
 import { BottomSheetMethods } from "@devvie/bottom-sheet";
 import useDate from "@/hooks/useDate";
+import useLocation from "@/hooks/useLocation";
+import { addDoc, collection, getDocs, query, where } from "firebase/firestore";
+import { db } from "@/lib/firebase";
+import { useSession } from "@/context";
+import Toast from "react-native-toast-message";
 
 const ClockIn = ({
   bottomSheet
@@ -13,7 +18,87 @@ const ClockIn = ({
   const [isAbleClockIn, setIsAbleClockIn] = useState(true);
   const [isClockedIn, setIsClockedIn] = useState(false);
   const [isLate, setIsLate] = useState(false);
-  const { dayFull, date, monthFull, year } = useDate(new Date().toISOString());
+  const { dayFull, date, monthFull, year, month } = useDate(
+    new Date().toISOString()
+  );
+  const { checkEnableLocation, getLocation } = useLocation();
+  const { authId } = useSession();
+  const [isLoading, setIsLoading] = useState(false);
+
+  const clockInHandler = async () => {
+    if (isLoading) return;
+
+    setIsLoading(true);
+    const isLocEnabled = await checkEnableLocation();
+
+    if (isLocEnabled) {
+      const { isGranted } = await getLocation();
+
+      if (isGranted) {
+        try {
+          await addDoc(collection(db, "presence"), {
+            date: `${year}-${10}-${25}`,
+            type: "HADIR",
+            user: authId,
+            iso: new Date().toISOString()
+          });
+
+          setIsLoading(false);
+          setIsClockedIn(true);
+        } catch (error) {
+          Toast.show({
+            text1: "Gagal untuk Clock In",
+            type: "error"
+          });
+          setIsLoading(false);
+        }
+      } else {
+        console.log("tidak granted");
+        setIsLoading(false);
+      }
+    } else {
+      Toast.show({
+        text1: "Lokasi/GPS harus diaktifkan!",
+        type: "error"
+      });
+      console.log("gps mati");
+    }
+  };
+
+  const getClockIn = async () => {
+    if (!authId) return;
+
+    try {
+      const res = await getDocs(
+        query(
+          collection(db, "presence"),
+          where("user", "==", authId),
+          where("date", "==", `${year}-${month}-${date}`)
+        )
+      );
+
+      if (res.empty) {
+        setIsAbleClockIn(true);
+        setIsClockedIn(false);
+      } else {
+        setIsAbleClockIn(false);
+        setIsClockedIn(true);
+      }
+    } catch (error) {
+      Toast.show({
+        text1: "Gagal mendapat data!",
+        type: "error"
+      });
+    }
+  };
+
+  useEffect(() => {
+    console.log("user: ", authId);
+
+    if (!authId) return;
+
+    getClockIn();
+  }, [authId]);
 
   return (
     <View style={styles.checkInWrapper}>
@@ -33,12 +118,12 @@ const ClockIn = ({
           <TouchableHighlight
             style={styles.clockInBtn}
             underlayColor={COLORS.primaryUnderlay}
-            onPress={() => {
-              setIsClockedIn(true);
-            }}
+            onPress={clockInHandler}
           >
             <View>
-              <Text style={styles.clockInText}>Clock In</Text>
+              <Text style={styles.clockInText}>
+                {isLoading ? "Loading..." : "Clock In"}
+              </Text>
             </View>
           </TouchableHighlight>
 

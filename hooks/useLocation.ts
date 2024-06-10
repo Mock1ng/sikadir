@@ -14,7 +14,9 @@ const useLocation = () => {
   const [isLocationGranted, setIsLocationGranted] = useState<boolean | null>(
     null
   );
-  const [isLocationEnabled, setIsLocationEnabled] = useState(false);
+  const [isLocationEnabled, setIsLocationEnabled] = useState<boolean | null>(
+    null
+  );
 
   const getLocation = async () => {
     setIsGettingLocation(true);
@@ -25,16 +27,18 @@ const useLocation = () => {
     setLocationPermission(locationReq);
     setIsGettingLocation(false);
 
-    if (locationReq.status !== "granted") {
+    if (locationReq.status == "granted") {
+      setIsLocationGranted(true);
+
+      let location = await Location.getCurrentPositionAsync();
+      setLocation(location);
+
+      return { location, isGranted: true };
+    } else {
       setLocationErrorMsg("Permission to access location was denied");
       setIsLocationGranted(false);
-      return;
+      return { isGranted: false };
     }
-
-    setIsLocationGranted(true);
-
-    let location = await Location.getCurrentPositionAsync();
-    setLocation(location);
   };
 
   // useEffect(() => {
@@ -46,23 +50,27 @@ const useLocation = () => {
   // }, [locationPermission]);
 
   const checkEnableLocation = async () => {
-    const isLocEnabled = await Location.hasServicesEnabledAsync();
-    console.log("location enabled: ", isLocEnabled);
+    const resLocEnabled = await Location.hasServicesEnabledAsync();
+    setIsLocationEnabled(resLocEnabled);
 
-    if (isLocEnabled) {
-      getLocation();
-    } else {
-      try {
-        await Location.getCurrentPositionAsync();
-        setIsLocationEnabled(true);
-      } catch (e) {
-        setIsLocationEnabled(false);
-        Toast.show({
-          text1: "Lokasi/GPS harus dihidupkan!",
-          type: "error"
-        });
-      }
-    }
+    // if (resLocEnabled) {
+    //   console.log("getting location");
+
+    //   await getLocation();
+    // } else {
+    //   try {
+    //     await Location.getCurrentPositionAsync();
+    //     setIsLocationEnabled(true);
+    //   } catch (e) {
+    //     setIsLocationEnabled(false);
+    //     Toast.show({
+    //       text1: "Lokasi/GPS harus dihidupkan!",
+    //       type: "error"
+    //     });
+    //   }
+    // }
+
+    return resLocEnabled;
   };
 
   useEffect(() => {
@@ -114,7 +122,8 @@ const useLocation = () => {
     askPermissionHandler,
     isLocationGranted,
     isLocationEnabled,
-    checkEnableLocation
+    checkEnableLocation,
+    getLocation
   };
 };
 
