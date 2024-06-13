@@ -11,8 +11,12 @@ import React, { useCallback, useState } from "react";
 import { Ionicons } from "@expo/vector-icons";
 import { Dropdown } from "react-native-element-dropdown";
 import { COLORS } from "@/constants/Colors";
-import { router } from "expo-router";
 import BottomSheet, { BottomSheetMethods } from "@devvie/bottom-sheet";
+import { addDoc, collection } from "firebase/firestore";
+import { db } from "@/lib/firebase";
+import { useSession } from "@/context";
+import useDate from "@/hooks/useDate";
+import Toast from "react-native-toast-message";
 
 const AbsenceForm = ({
   bottomSheet
@@ -20,8 +24,12 @@ const AbsenceForm = ({
   bottomSheet: React.RefObject<BottomSheetMethods>;
 }) => {
   const [value, setValue] = useState("");
+  const [details, setDetails] = useState("");
   const [isFocus, setIsFocus] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [sheetHeight, setSheetHeight] = useState(0);
+  const { authId } = useSession();
+  const { date, year, month } = useDate(new Date().toISOString());
 
   const onLayout = useCallback(
     (event: { nativeEvent: { layout: { height: number } } }) => {
@@ -31,22 +39,60 @@ const AbsenceForm = ({
     []
   );
 
-  const data = [
-    { label: "Pendidikan", value: "1" },
-    { label: "Dinas Luar", value: "2" },
-    { label: "Sakit", value: "3" },
-    { label: "Malas", value: "4" }
+  const absenceDetail = [
+    { label: "DINAS LUAR", value: "1" },
+    { label: "PENDIDIKAN", value: "2" },
+    { label: "CUTI", value: "3" },
+    { label: "SAKIT", value: "4" },
+    { label: "IJIN", value: "5" },
+    { label: "TANPA KETERANGAN", value: "6" }
   ];
 
+  const absenceHandler = async () => {
+    Keyboard.dismiss();
+
+    if (isLoading) return;
+
+    setIsLoading(true);
+    const type = absenceDetail.find((detail) => detail.value == value)?.label;
+
+    try {
+      await addDoc(collection(db, "presence"), {
+        date: `${year}-${month}-${date}`,
+        type: type,
+        detail: details,
+        user: authId,
+        iso: new Date().toISOString()
+      });
+
+      bottomSheet?.current?.close();
+      setValue("");
+      setDetails("");
+      setIsLoading(false);
+    } catch (error) {
+      console.log(error);
+
+      Toast.show({
+        text1: "Gagal untuk mengupdate data!",
+        type: "error"
+      });
+
+      setIsLoading(false);
+    }
+  };
+
   return (
-    <BottomSheet ref={bottomSheet} height={sheetHeight} hideDragHandle={true}>
+    <BottomSheet ref={bottomSheet} height={"90%"} hideDragHandle={true}>
       <TouchableWithoutFeedback onPress={Keyboard.dismiss} onLayout={onLayout}>
         <View style={styles.absenceWrapper}>
           <View style={styles.absenceHeader}>
             <Ionicons
               name="close"
               size={22}
-              onPress={bottomSheet?.current?.close}
+              onPress={() => {
+                bottomSheet?.current?.close();
+                setDetails("");
+              }}
             />
             <Text style={styles.absenceHeaderText}>Tidak Hadir</Text>
           </View>
@@ -62,7 +108,7 @@ const AbsenceForm = ({
                     isFocus && { borderColor: COLORS.primary }
                   ]}
                   iconStyle={styles.iconStyle}
-                  data={data}
+                  data={absenceDetail}
                   maxHeight={300}
                   labelField="label"
                   valueField="value"
@@ -89,6 +135,8 @@ const AbsenceForm = ({
                 <TextInput
                   style={styles.dropdown}
                   placeholder="Masukkan keterangan"
+                  onChangeText={(e) => setDetails(e)}
+                  value={details}
                 />
               </View>
             </View>
@@ -98,22 +146,28 @@ const AbsenceForm = ({
             <TouchableHighlight
               style={styles.cancelBtn}
               underlayColor={"#fff"}
-              onPress={() => router.back()}
+              onPress={() => {
+                if (isLoading) return;
+
+                bottomSheet?.current?.close();
+                Keyboard.dismiss();
+                setDetails("");
+              }}
             >
               <View style={{ alignItems: "center" }}>
-                <Text style={{}}>Batal</Text>
+                <Text>Batal</Text>
               </View>
             </TouchableHighlight>
 
             <TouchableHighlight
               style={styles.absenceBtn}
               underlayColor={COLORS.primaryUnderlay}
-              onPress={() => {
-                console.log("tidak hadir");
-              }}
+              onPress={absenceHandler}
             >
               <View style={{ alignItems: "center" }}>
-                <Text style={{ color: "#fff" }}>Tidak Hadir</Text>
+                <Text style={{ color: "#fff" }}>
+                  {isLoading ? "Loading..." : "Tidak Hadir"}
+                </Text>
               </View>
             </TouchableHighlight>
           </View>
@@ -129,7 +183,8 @@ const styles = StyleSheet.create({
   absenceWrapper: {
     padding: 16,
     gap: 24,
-    backgroundColor: "#F9FAFC"
+    backgroundColor: "#F9FAFC",
+    height: "100%"
   },
   absenceHeader: {
     flexDirection: "row",

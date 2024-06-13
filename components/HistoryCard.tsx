@@ -9,17 +9,22 @@ const HistoryCard = ({ data }: { data: DocumentData }) => {
 
   return (
     <View style={styles.card}>
-      <DateLabel date={`${dayFull}, ${date} ${monthFull} ${year}`} />
+      <DateLabel
+        date={`${dayFull}, ${date} ${monthFull} ${year}`}
+        type={data.type}
+      />
 
       <View>
         <View style={styles.justifyBetween}>
-          <Text style={styles.font10}>Waktu Clock In</Text>
+          <Text style={styles.font10}>
+            {data.type == "HADIR" ? "Waktu Clock In" : "Alasan"}
+          </Text>
           <Text style={styles.font10}>Jam Masuk Keluar</Text>
         </View>
 
         <View style={styles.justifyBetween}>
           <Text style={styles.fontBold16}>
-            {hours}.{minutes}
+            {data.type == "HADIR" ? hours + "." + minutes : data.type}
           </Text>
           <Text style={styles.fontBold16}>07.30 - 16.00</Text>
         </View>

@@ -5,7 +5,13 @@ import DateLabel from "./DateLabel";
 import { BottomSheetMethods } from "@devvie/bottom-sheet";
 import useDate from "@/hooks/useDate";
 import useLocation from "@/hooks/useLocation";
-import { addDoc, collection, getDocs, query, where } from "firebase/firestore";
+import {
+  addDoc,
+  collection,
+  onSnapshot,
+  query,
+  where
+} from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useSession } from "@/context";
 import Toast from "react-native-toast-message";
@@ -18,6 +24,7 @@ const ClockIn = ({
   const [isAbleClockIn, setIsAbleClockIn] = useState(true);
   const [isClockedIn, setIsClockedIn] = useState(false);
   const [isLate, setIsLate] = useState(false);
+  const [isNotAttend, setIsNotAttend] = useState(false);
   const { dayFull, date, monthFull, year, month } = useDate(
     new Date().toISOString()
   );
@@ -65,25 +72,34 @@ const ClockIn = ({
     }
   };
 
-  const getClockIn = async () => {
+  const getClockIn = () => {
     if (!authId) return;
 
     try {
-      const res = await getDocs(
+      const res = onSnapshot(
         query(
           collection(db, "presence"),
           where("user", "==", authId),
           where("date", "==", `${year}-${month}-${date}`)
-        )
-      );
+        ),
+        (snapshots) => {
+          if (snapshots.empty) {
+            setIsAbleClockIn(true);
+            setIsClockedIn(false);
+          } else {
+            setIsAbleClockIn(false);
 
-      if (res.empty) {
-        setIsAbleClockIn(true);
-        setIsClockedIn(false);
-      } else {
-        setIsAbleClockIn(false);
-        setIsClockedIn(true);
-      }
+            snapshots.forEach((doc) => {
+              if (doc.data().type == "HADIR") {
+                setIsClockedIn(true);
+              } else {
+                setIsNotAttend(true);
+                setIsClockedIn(false);
+              }
+            });
+          }
+        }
+      );
     } catch (error) {
       Toast.show({
         text1: "Gagal mendapat data!",
@@ -154,6 +170,12 @@ const ClockIn = ({
           <Text style={styles.isLateText}>
             Kamu terlambat Clock In hari ini
           </Text>
+        </View>
+      )}
+
+      {isNotAttend && (
+        <View style={styles.isLateWrapper}>
+          <Text style={styles.isLateText}>Kamu tidak hadir hari ini</Text>
         </View>
       )}
     </View>

@@ -37,6 +37,7 @@ const useLocation = () => {
     } else {
       setLocationErrorMsg("Permission to access location was denied");
       setIsLocationGranted(false);
+
       return { isGranted: false };
     }
   };

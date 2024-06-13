@@ -72,7 +72,8 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     gap: 14,
     backgroundColor: "#F9FAFC",
-    zIndex: 2
+    zIndex: 2,
+    flex: 1
   },
   historyHeader: {
     flexDirection: "row",

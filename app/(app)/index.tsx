@@ -46,7 +46,7 @@ const HomeScreen = () => {
 
   return (
     <>
-      <View style={{ backgroundColor: "#F9FAFC" }}>
+      <View style={{ backgroundColor: "#F9FAFC", flex: 1 }}>
         <SafeAreaView>
           <StatusBar style="light" backgroundColor={COLORS.primary} />
 
@@ -102,7 +102,8 @@ const styles = StyleSheet.create({
     gap: 14,
     borderBottomLeftRadius: 10,
     borderBottomRightRadius: 10,
-    backgroundColor: COLORS.primary
+    backgroundColor: COLORS.primary,
+    flex: 1
   },
   head: {
     flexDirection: "row",
