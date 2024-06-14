@@ -69,6 +69,7 @@ const ClockIn = ({
         type: "error"
       });
       console.log("gps mati");
+      setIsLoading(false);
     }
   };
 
