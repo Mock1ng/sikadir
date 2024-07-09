@@ -1,4 +1,6 @@
 import {
+  Button,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -25,11 +27,30 @@ import {
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import useDate from "@/hooks/useDate";
+import * as Print from "expo-print";
+import { shareAsync } from "expo-sharing";
+
+const html = `
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no" />
+  </head>
+  <body style="text-align: center;">
+    <h1 style="font-size: 50px; font-family: Helvetica Neue; font-weight: normal;">
+      Hello Expo!
+    </h1>
+    <img
+      src="https://d30j33t1r58ioz.cloudfront.net/static/guides/sdk.png"
+      style="width: 90vw;" />
+  </body>
+</html>
+`;
 
 const AdminScreen = () => {
   const { signOut } = useSession();
   const [isLoading, setIsLoading] = useState(false);
   const [clockInList, setClockInList] = useState<DocumentData[]>([]);
+  const [selectedPrinter, setSelectedPrinter] = useState<Print.Printer>();
 
   const getClockIn = () => {
     setIsLoading(true);
@@ -77,6 +98,26 @@ const AdminScreen = () => {
     getClockIn();
   }, []);
 
+  const print = async () => {
+    // On iOS/android prints the given html. On web prints the HTML from the current page.
+    await Print.printAsync({
+      html,
+      printerUrl: selectedPrinter?.url // iOS only
+    });
+  };
+
+  const printToFile = async () => {
+    // On iOS/android prints the given html. On web prints the HTML from the current page.
+    const { uri } = await Print.printToFileAsync({ html });
+    console.log("File has been saved to:", uri);
+    await shareAsync(uri, { UTI: ".pdf", mimeType: "application/pdf" });
+  };
+
+  const selectPrinter = async () => {
+    const printer = await Print.selectPrinterAsync(); // iOS only
+    setSelectedPrinter(printer);
+  };
+
   return (
     <SafeAreaView>
       <StatusBar style="dark" backgroundColor={COLORS.background} />
@@ -114,10 +155,19 @@ const AdminScreen = () => {
       </ScrollView>
 
       <View style={styles.savePdfWrapper}>
-        <TouchableHighlight style={styles.savePdf}>
+        <TouchableHighlight style={styles.savePdf} onPress={print}>
           <Text style={{ color: "#fff" }}>Simpan Absen ke PDF</Text>
         </TouchableHighlight>
       </View>
+
+      {Platform.OS === "ios" && (
+        <>
+          <Button title="Select printer" onPress={selectPrinter} />
+          {selectedPrinter ? (
+            <Text>{`Selected printer: ${selectedPrinter.name}`}</Text>
+          ) : undefined}
+        </>
+      )}
     </SafeAreaView>
   );
 };

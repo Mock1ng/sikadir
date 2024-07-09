@@ -24,7 +24,7 @@ import { db } from "@/lib/firebase";
 import { useSession } from "@/context";
 import Toast from "react-native-toast-message";
 import useTimeFormatter from "@/hooks/useTimeFormatter";
-// import { startActivityAsync, ActivityAction } from "expo-intent-launcher";
+import { startActivityAsync, ActivityAction } from "expo-intent-launcher";
 
 const ClockIn = ({
   bottomSheet,
@@ -139,8 +139,10 @@ const ClockIn = ({
         text1: "Lokasi/GPS harus diaktifkan!",
         text2: "Klik untuk masuk ke Pengaturan/Settings",
         visibilityTime: 6000,
-        onPress: Linking.openSettings,
-        // startActivityAsync(ActivityAction.LOCATION_SOURCE_SETTINGS),
+        onPress: () =>
+          startActivityAsync(ActivityAction.LOCATION_SOURCE_SETTINGS),
+        // onPress: Linking.openSettings,
+        // onPress: () => startActivityAsync(ActivityAction.LOCATION_SOURCE_SETTINGS)
         type: "error"
       });
 
