@@ -3,9 +3,14 @@ import React from "react";
 import DateLabel from "./DateLabel";
 import useDate from "@/hooks/useDate";
 import { DocumentData } from "firebase/firestore";
+import useTimeFormatter from "@/hooks/useTimeFormatter";
 
 const HistoryCard = ({ data }: { data: DocumentData }) => {
   const { dayFull, date, monthFull, year, hours, minutes } = useDate(data.iso);
+  const { hourStart, minuteStart } = useTimeFormatter({
+    hourStart: hours,
+    minuteStart: minutes
+  });
 
   return (
     <View style={styles.card}>
@@ -19,14 +24,19 @@ const HistoryCard = ({ data }: { data: DocumentData }) => {
           <Text style={styles.font10}>
             {data.type == "HADIR" ? "Waktu Clock In" : "Alasan"}
           </Text>
-          <Text style={styles.font10}>Jam Masuk Keluar</Text>
+          {data.timeConfig && (
+            <Text style={styles.font10}>Jam Masuk Keluar</Text>
+          )}
         </View>
 
         <View style={styles.justifyBetween}>
           <Text style={styles.fontBold16}>
-            {data.type == "HADIR" ? hours + "." + minutes : data.type}
+            {data.type == "HADIR" ? hourStart + "." + minuteStart : data.type}
           </Text>
-          <Text style={styles.fontBold16}>07.30 - 16.00</Text>
+
+          {data.timeConfig && (
+            <Text style={styles.fontBold16}>{data.timeConfig}</Text>
+          )}
         </View>
       </View>
     </View>

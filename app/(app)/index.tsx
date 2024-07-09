@@ -20,14 +20,12 @@ import { useSession } from "@/context";
 import { doc, DocumentData, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import Toast from "react-native-toast-message";
-import useLocation from "@/hooks/useLocation";
 
 const HomeScreen = () => {
   const sheetRef = useRef<BottomSheetMethods>(null);
   const { signOut, authId } = useSession();
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [user, setUser] = useState<DocumentData | undefined>({});
-  const { checkEnableLocation } = useLocation();
 
   const getUser = async () => {
     if (!authId) return;
@@ -38,10 +36,6 @@ const HomeScreen = () => {
 
   useEffect(() => {
     getUser();
-  }, []);
-
-  useEffect(() => {
-    checkEnableLocation();
   }, []);
 
   return (
@@ -55,12 +49,9 @@ const HomeScreen = () => {
               <RefreshControl
                 refreshing={isRefreshing}
                 onRefresh={() => {
-                  setIsRefreshing(true);
+                  console.log("refresh");
 
-                  setTimeout(() => {
-                    setIsRefreshing(false);
-                    console.log("refresh");
-                  }, 3000);
+                  setIsRefreshing(true);
                 }}
               />
             }
@@ -78,7 +69,11 @@ const HomeScreen = () => {
                 <Text style={styles.class}>{user?.class}</Text>
               </View>
 
-              <ClockIn bottomSheet={sheetRef} />
+              <ClockIn
+                bottomSheet={sheetRef}
+                isRefreshing={isRefreshing}
+                setIsRefreshing={setIsRefreshing}
+              />
             </View>
 
             <ClockInHistory />

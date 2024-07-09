@@ -1,4 +1,10 @@
-import { StyleSheet, Text, TouchableHighlight, View } from "react-native";
+import {
+  Linking,
+  StyleSheet,
+  Text,
+  TouchableHighlight,
+  View
+} from "react-native";
 import React, { useEffect, useState } from "react";
 import { COLORS } from "@/constants/Colors";
 import DateLabel from "./DateLabel";
@@ -8,6 +14,8 @@ import useLocation from "@/hooks/useLocation";
 import {
   addDoc,
   collection,
+  DocumentData,
+  getDocs,
   onSnapshot,
   query,
   where
@@ -15,60 +23,127 @@ import {
 import { db } from "@/lib/firebase";
 import { useSession } from "@/context";
 import Toast from "react-native-toast-message";
+import useTimeFormatter from "@/hooks/useTimeFormatter";
+// import { startActivityAsync, ActivityAction } from "expo-intent-launcher";
 
 const ClockIn = ({
-  bottomSheet
+  bottomSheet,
+  isRefreshing,
+  setIsRefreshing
 }: {
   bottomSheet: React.RefObject<BottomSheetMethods>;
+  isRefreshing: boolean;
+  setIsRefreshing: React.Dispatch<React.SetStateAction<boolean>>;
 }) => {
   const [isAbleClockIn, setIsAbleClockIn] = useState(true);
   const [isClockedIn, setIsClockedIn] = useState(false);
   const [isLate, setIsLate] = useState(false);
   const [isNotAttend, setIsNotAttend] = useState(false);
-  const { dayFull, date, monthFull, year, month } = useDate(
+  const { dayFull, date, monthFull, year, month, hours, minutes } = useDate(
     new Date().toISOString()
   );
-  const { checkEnableLocation, getLocation } = useLocation();
+  const { getLocation } = useLocation();
   const { authId } = useSession();
   const [isLoading, setIsLoading] = useState(false);
+  const [config, setConfig] = useState<DocumentData>({});
+  const { hourStart, hourEnd, minuteStart, minuteEnd } = useTimeFormatter({
+    hourStart: config.hourStart,
+    hourEnd: config.hourEnd,
+    minuteStart: config.minuteStart,
+    minuteEnd: config.minuteEnd
+  });
 
   const clockInHandler = async () => {
-    if (isLoading) return;
-
     setIsLoading(true);
-    const isLocEnabled = await checkEnableLocation();
 
-    if (isLocEnabled) {
-      const { isGranted } = await getLocation();
-
-      if (isGranted) {
-        try {
-          await addDoc(collection(db, "presence"), {
-            date: `${year}-${month}-${date}`,
-            type: "HADIR",
-            user: authId,
-            iso: new Date().toISOString()
-          });
-
-          setIsLoading(false);
-          setIsClockedIn(true);
-        } catch (error) {
-          Toast.show({
-            text1: "Gagal untuk Clock In",
-            type: "error"
-          });
-          setIsLoading(false);
-        }
-      } else {
-        console.log("tidak granted");
-        setIsLoading(false);
-      }
-    } else {
+    if (
+      hours < config.hourStart ||
+      (hours == config.hourStart && minutes < config.minuteStart)
+    ) {
       Toast.show({
-        text1: "Lokasi/GPS harus diaktifkan!",
+        text1: "Belum masuk waktu absen!",
         type: "error"
       });
+
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      const { isGranted, distance, isAccurate } = await getLocation({
+        targetLat: config.targetLat,
+        targetLong: config.targetLong
+      });
+      console.log("distance: ", distance);
+      console.log("isAccurate: ", isAccurate);
+
+      if (!isGranted) {
+        Toast.show({
+          text1: "Lokasi/GPS harus diizinkan!",
+          text2: "Klik untuk masuk ke Pengaturan/Settings",
+          visibilityTime: 6000,
+          onPress: Linking.openSettings,
+          type: "error"
+        });
+
+        setIsLoading(false);
+        return;
+      }
+
+      if (!isAccurate) {
+        Toast.show({
+          text1: "Izinkan Lokasi/GPS untuk selalu akurat/precise!",
+          text2: "Klik untuk masuk ke Pengaturan/Settings",
+          visibilityTime: 8000,
+          onPress: Linking.openSettings,
+          type: "error"
+        });
+
+        setIsLoading(false);
+        return;
+      }
+
+      if (distance > 100) {
+        Toast.show({
+          text1: "Anda berada di luar jangkauan kantor!",
+          type: "error"
+        });
+
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        await addDoc(collection(db, "presence"), {
+          date: `${year}-${month}-${date}`,
+          type: "HADIR",
+          user: authId,
+          iso: new Date().toISOString(),
+          timeConfig: `${hourStart}.${minuteStart} - ${hourEnd}.${minuteEnd}`
+        });
+
+        setIsLoading(false);
+        setIsClockedIn(true);
+        setIsAbleClockIn(false);
+      } catch (error) {
+        Toast.show({
+          text1: "Gagal untuk Clock In",
+          type: "error"
+        });
+        setIsLoading(false);
+      }
+    } catch (error) {
       console.log("gps mati");
+
+      Toast.show({
+        text1: "Lokasi/GPS harus diaktifkan!",
+        text2: "Klik untuk masuk ke Pengaturan/Settings",
+        visibilityTime: 6000,
+        onPress: Linking.openSettings,
+        // startActivityAsync(ActivityAction.LOCATION_SOURCE_SETTINGS),
+        type: "error"
+      });
+
       setIsLoading(false);
     }
   };
@@ -84,21 +159,17 @@ const ClockIn = ({
           where("date", "==", `${year}-${month}-${date}`)
         ),
         (snapshots) => {
-          if (snapshots.empty) {
-            setIsAbleClockIn(true);
-            setIsClockedIn(false);
-          } else {
-            setIsAbleClockIn(false);
+          if (snapshots.empty) return;
 
-            snapshots.forEach((doc) => {
-              if (doc.data().type == "HADIR") {
-                setIsClockedIn(true);
-              } else {
-                setIsNotAttend(true);
-                setIsClockedIn(false);
-              }
-            });
-          }
+          snapshots.forEach((doc) => {
+            if (doc.data().type == "HADIR") {
+              setIsClockedIn(true);
+              setIsAbleClockIn(false);
+            } else {
+              setIsNotAttend(true);
+              setIsClockedIn(false);
+            }
+          });
         }
       );
     } catch (error) {
@@ -107,15 +178,64 @@ const ClockIn = ({
         type: "error"
       });
     }
+
+    setIsRefreshing(false);
+  };
+
+  const getConfig = async () => {
+    try {
+      const res = await getDocs(collection(db, "config"));
+      res.forEach((doc) => {
+        doc.data;
+        setConfig({ ...doc.data(), id: doc.id });
+      });
+    } catch (error) {
+      console.log(error);
+    }
+    setIsRefreshing(false);
+  };
+
+  const absenceFunc = async () => {
+    await addDoc(collection(db, "presence"), {
+      date: `${year}-${month}-${date}`,
+      type: "TANPA KETERANGAN",
+      detail: "",
+      user: authId,
+      iso: new Date().toISOString()
+    });
   };
 
   useEffect(() => {
     console.log("user: ", authId);
-
     if (!authId) return;
 
     getClockIn();
+    getConfig();
   }, [authId]);
+
+  useEffect(() => {
+    if (!isRefreshing) return;
+    setIsClockedIn(false);
+    setIsLate(false);
+    setIsNotAttend(false);
+
+    getClockIn();
+    getConfig();
+  }, [isRefreshing]);
+
+  useEffect(() => {
+    if (Object.keys(config).length == 0) return;
+
+    if (
+      hours > config.hourEnd ||
+      (hours == config.hourEnd && minutes > config.minuteEnd)
+    ) {
+      setIsLate(false);
+      setIsAbleClockIn(false);
+
+      absenceFunc();
+    }
+  }, [config]);
 
   return (
     <View style={styles.checkInWrapper}>
@@ -127,10 +247,14 @@ const ClockIn = ({
       <View style={{ borderBottomWidth: 1, borderColor: "#aeaeae" }} />
 
       <View>
-        <Text style={styles.clock}>07.30 - 16.00</Text>
+        <Text style={styles.clock}>
+          {Object.keys(config).length == 0 && "Loading..."}
+          {Object.keys(config).length > 0 &&
+            `${hourStart}.${minuteStart} - ${hourEnd}.${minuteEnd}`}
+        </Text>
       </View>
 
-      {isAbleClockIn && !isClockedIn && (
+      {Object.keys(config).length > 0 && isAbleClockIn && !isClockedIn && (
         <View>
           <TouchableHighlight
             style={styles.clockInBtn}

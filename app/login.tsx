@@ -50,6 +50,9 @@ const LoginScreen = () => {
     res.forEach((doc) => {
       const data = doc.data();
 
+      console.log("password: ", password);
+      console.log("data.password: ", data.password);
+
       if (password === data.password) {
         signIn(doc.id);
 
