@@ -25,6 +25,40 @@ import { useSession } from "@/context";
 import Toast from "react-native-toast-message";
 import useTimeFormatter from "@/hooks/useTimeFormatter";
 import { startActivityAsync, ActivityAction } from "expo-intent-launcher";
+import * as BackgroundFetch from "expo-background-fetch";
+import * as TaskManager from "expo-task-manager";
+
+const BACKGROUND_PRESENCE_TASK = "background-presence";
+
+const absenceFunc = async () => {
+  try {
+    await addDoc(collection(db, "presence"), {
+      date: `1999-99-99`,
+      type: "TANPA KETERANGAN",
+      detail: "",
+      user: "authId",
+      iso: new Date().toISOString()
+    });
+
+    return BackgroundFetch.BackgroundFetchResult.NewData;
+  } catch (error) {
+    return BackgroundFetch.BackgroundFetchResult.Failed;
+  }
+};
+
+TaskManager.defineTask(BACKGROUND_PRESENCE_TASK, absenceFunc);
+
+async function registerBackgroundFetchAsync() {
+  return BackgroundFetch.registerTaskAsync(BACKGROUND_PRESENCE_TASK, {
+    minimumInterval: 60 * 60, // 1 jam
+    stopOnTerminate: false, // android only,
+    startOnBoot: true // android only
+  });
+}
+
+async function unregisterBackgroundFetchAsync() {
+  return BackgroundFetch.unregisterTaskAsync(BACKGROUND_PRESENCE_TASK);
+}
 
 const ClockIn = ({
   bottomSheet,
@@ -52,6 +86,9 @@ const ClockIn = ({
     minuteStart: config.minuteStart,
     minuteEnd: config.minuteEnd
   });
+  const [isRegistered, setIsRegistered] = React.useState(false);
+  const [status, setStatus] =
+    useState<BackgroundFetch.BackgroundFetchStatus | null>(null);
 
   const clockInHandler = async () => {
     setIsLoading(true);
@@ -197,16 +234,6 @@ const ClockIn = ({
     setIsRefreshing(false);
   };
 
-  const absenceFunc = async () => {
-    await addDoc(collection(db, "presence"), {
-      date: `${year}-${month}-${date}`,
-      type: "TANPA KETERANGAN",
-      detail: "",
-      user: authId,
-      iso: new Date().toISOString()
-    });
-  };
-
   useEffect(() => {
     console.log("user: ", authId);
     if (!authId) return;
@@ -234,10 +261,22 @@ const ClockIn = ({
     ) {
       setIsLate(false);
       setIsAbleClockIn(false);
-
-      absenceFunc();
     }
   }, [config]);
+
+  const checkStatusAsync = async () => {
+    const status = await BackgroundFetch.getStatusAsync();
+    const isRegistered = await TaskManager.isTaskRegisteredAsync(
+      BACKGROUND_PRESENCE_TASK
+    );
+    setStatus(status);
+    setIsRegistered(isRegistered);
+  };
+
+  useEffect(() => {
+    checkStatusAsync();
+    registerBackgroundFetchAsync();
+  }, []);
 
   return (
     <View style={styles.checkInWrapper}>
@@ -283,6 +322,19 @@ const ClockIn = ({
           </TouchableHighlight>
         </View>
       )}
+
+      <View>
+        <Text>
+          Background fetch status:{" "}
+          <Text>{status && BackgroundFetch.BackgroundFetchStatus[status]}</Text>
+        </Text>
+        <Text>
+          Background fetch task name:{" "}
+          <Text>
+            {isRegistered ? BACKGROUND_PRESENCE_TASK : "Not registered yet!"}
+          </Text>
+        </Text>
+      </View>
 
       {isClockedIn && (
         <View style={styles.isClockedInWrapper}>
