@@ -78,7 +78,21 @@ const useDate = (isoDate: string | undefined) => {
       break;
   }
 
-  return { dayFull, date, monthFull, year, month: month + 1, hours, minutes };
+  const dateZero = date.toString().length == 2 ? `${date}` : `0${date}`;
+  const monthZero =
+    month.toString().length == 2 ? `${month + 1}` : `0${month + 1}`;
+
+  return {
+    dayFull,
+    date,
+    monthFull,
+    year,
+    month: month + 1,
+    hours,
+    minutes,
+    monthZero,
+    dateZero
+  };
 };
 
 export default useDate;

@@ -1,4 +1,5 @@
 import {
+  Button,
   Linking,
   StyleSheet,
   Text,
@@ -30,44 +31,54 @@ import * as TaskManager from "expo-task-manager";
 
 const BACKGROUND_PRESENCE_TASK = "background-presence";
 
-const absenceFunc = async () => {
-  try {
-    await addDoc(collection(db, "presence"), {
-      date: `1999-99-99`,
-      type: "TANPA KETERANGAN",
-      detail: "",
-      user: "authId",
-      iso: new Date().toISOString()
-    });
+// const absenceFunc = async () => {
+//   const now = Date.now();
 
-    return BackgroundFetch.BackgroundFetchResult.NewData;
-  } catch (error) {
-    return BackgroundFetch.BackgroundFetchResult.Failed;
-  }
-};
+//   console.log(
+//     `Got background fetch call at date: ${new Date(now).toISOString()} at userID`
+//   );
 
-TaskManager.defineTask(BACKGROUND_PRESENCE_TASK, absenceFunc);
+//   try {
+//     await addDoc(collection(db, "presence"), {
+//       date: `2999-12-30`,
+//       type: "TANPA KETERANGAN",
+//       detail: "",
+//       user: "authId",
+//       iso: new Date().toISOString()
+//     });
 
-async function registerBackgroundFetchAsync() {
-  return BackgroundFetch.registerTaskAsync(BACKGROUND_PRESENCE_TASK, {
-    minimumInterval: 60 * 60, // 1 jam
-    stopOnTerminate: false, // android only,
-    startOnBoot: true // android only
-  });
-}
+//     return BackgroundFetch.BackgroundFetchResult.NewData;
+//   } catch (error) {
+//     return BackgroundFetch.BackgroundFetchResult.Failed;
+//   }
+// };
 
-async function unregisterBackgroundFetchAsync() {
-  return BackgroundFetch.unregisterTaskAsync(BACKGROUND_PRESENCE_TASK);
-}
+// TaskManager.defineTask(BACKGROUND_PRESENCE_TASK, absenceFunc);
+
+// async function registerBackgroundFetchAsync() {
+//   return BackgroundFetch.registerTaskAsync(BACKGROUND_PRESENCE_TASK, {
+//     minimumInterval: 10, // 1 jam
+//     stopOnTerminate: false, // android only,
+//     startOnBoot: true // android only
+//   });
+// }
+
+// async function unregisterBackgroundFetchAsync() {
+//   return BackgroundFetch.unregisterTaskAsync(BACKGROUND_PRESENCE_TASK);
+// }
 
 const ClockIn = ({
   bottomSheet,
   isRefreshing,
-  setIsRefreshing
+  setIsRefreshing,
+  config,
+  getConfig
 }: {
   bottomSheet: React.RefObject<BottomSheetMethods>;
   isRefreshing: boolean;
   setIsRefreshing: React.Dispatch<React.SetStateAction<boolean>>;
+  config: DocumentData;
+  getConfig: () => Promise<void>;
 }) => {
   const [isAbleClockIn, setIsAbleClockIn] = useState(true);
   const [isClockedIn, setIsClockedIn] = useState(false);
@@ -79,7 +90,6 @@ const ClockIn = ({
   const { getLocation } = useLocation();
   const { authId } = useSession();
   const [isLoading, setIsLoading] = useState(false);
-  const [config, setConfig] = useState<DocumentData>({});
   const { hourStart, hourEnd, minuteStart, minuteEnd } = useTimeFormatter({
     hourStart: config.hourStart,
     hourEnd: config.hourEnd,
@@ -111,8 +121,6 @@ const ClockIn = ({
         targetLat: config.targetLat,
         targetLong: config.targetLong
       });
-      console.log("distance: ", distance);
-      console.log("isAccurate: ", isAccurate);
 
       if (!isGranted) {
         Toast.show({
@@ -207,6 +215,7 @@ const ClockIn = ({
             } else {
               setIsNotAttend(true);
               setIsClockedIn(false);
+              setIsAbleClockIn(false);
             }
           });
         }
@@ -221,25 +230,24 @@ const ClockIn = ({
     setIsRefreshing(false);
   };
 
-  const getConfig = async () => {
-    try {
-      const res = await getDocs(collection(db, "config"));
-      res.forEach((doc) => {
-        doc.data;
-        setConfig({ ...doc.data(), id: doc.id });
-      });
-    } catch (error) {
-      console.log(error);
-    }
-    setIsRefreshing(false);
-  };
+  // const getConfig = async () => {
+  //   try {
+  //     const res = await getDocs(collection(db, "config"));
+  //     res.forEach((doc) => {
+  //       doc.data;
+  //       setConfig({ ...doc.data(), id: doc.id });
+  //     });
+  //   } catch (error) {
+  //     console.log(error);
+  //   }
+  //   setIsRefreshing(false);
+  // };
 
   useEffect(() => {
     console.log("user: ", authId);
     if (!authId) return;
 
     getClockIn();
-    getConfig();
   }, [authId]);
 
   useEffect(() => {
@@ -273,10 +281,20 @@ const ClockIn = ({
     setIsRegistered(isRegistered);
   };
 
-  useEffect(() => {
-    checkStatusAsync();
-    registerBackgroundFetchAsync();
-  }, []);
+  // useEffect(() => {
+  //   checkStatusAsync();
+  //   registerBackgroundFetchAsync();
+  // }, []);
+
+  // const toggleFetchTask = async () => {
+  //   if (isRegistered) {
+  //     await unregisterBackgroundFetchAsync();
+  //   } else {
+  //     await registerBackgroundFetchAsync();
+  //   }
+
+  //   checkStatusAsync();
+  // };
 
   return (
     <View style={styles.checkInWrapper}>
@@ -323,19 +341,6 @@ const ClockIn = ({
         </View>
       )}
 
-      <View>
-        <Text>
-          Background fetch status:{" "}
-          <Text>{status && BackgroundFetch.BackgroundFetchStatus[status]}</Text>
-        </Text>
-        <Text>
-          Background fetch task name:{" "}
-          <Text>
-            {isRegistered ? BACKGROUND_PRESENCE_TASK : "Not registered yet!"}
-          </Text>
-        </Text>
-      </View>
-
       {isClockedIn && (
         <View style={styles.isClockedInWrapper}>
           <Text style={styles.isClockedInText}>
@@ -357,6 +362,28 @@ const ClockIn = ({
           <Text style={styles.isLateText}>Kamu tidak hadir hari ini</Text>
         </View>
       )}
+
+      {/* <View>
+        <Text>
+          Background fetch status:{" "}
+          <Text>{status && BackgroundFetch.BackgroundFetchStatus[status]}</Text>
+        </Text>
+        <Text>
+          Background fetch task name:{" "}
+          <Text>
+            {isRegistered ? BACKGROUND_PRESENCE_TASK : "Not registered yet!"}
+          </Text>
+        </Text>
+      </View>
+
+      <Button
+        title={
+          isRegistered
+            ? "Unregister BackgroundFetch task"
+            : "Register BackgroundFetch task"
+        }
+        onPress={toggleFetchTask}
+      /> */}
     </View>
   );
 };

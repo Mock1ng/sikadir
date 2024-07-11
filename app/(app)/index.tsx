@@ -17,7 +17,13 @@ import { StatusBar } from "expo-status-bar";
 import { BottomSheetMethods } from "@devvie/bottom-sheet";
 import AbsenceForm from "@/components/AbsenceForm";
 import { useSession } from "@/context";
-import { doc, DocumentData, getDoc } from "firebase/firestore";
+import {
+  collection,
+  doc,
+  DocumentData,
+  getDoc,
+  getDocs
+} from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import Toast from "react-native-toast-message";
 
@@ -26,6 +32,7 @@ const HomeScreen = () => {
   const { signOut, authId } = useSession();
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [user, setUser] = useState<DocumentData | undefined>({});
+  const [config, setConfig] = useState<DocumentData>({});
 
   const getUser = async () => {
     if (!authId) return;
@@ -34,8 +41,22 @@ const HomeScreen = () => {
     setUser({ ...res.data(), id: res.id });
   };
 
+  const getConfig = async () => {
+    try {
+      const res = await getDocs(collection(db, "config"));
+      res.forEach((doc) => {
+        doc.data;
+        setConfig({ ...doc.data(), id: doc.id });
+      });
+    } catch (error) {
+      console.log(error);
+    }
+    setIsRefreshing(false);
+  };
+
   useEffect(() => {
     getUser();
+    getConfig();
   }, []);
 
   return (
@@ -73,6 +94,8 @@ const HomeScreen = () => {
                 bottomSheet={sheetRef}
                 isRefreshing={isRefreshing}
                 setIsRefreshing={setIsRefreshing}
+                config={config}
+                getConfig={getConfig}
               />
             </View>
 
@@ -80,7 +103,7 @@ const HomeScreen = () => {
           </ScrollView>
         </SafeAreaView>
 
-        <AbsenceForm bottomSheet={sheetRef} />
+        <AbsenceForm bottomSheet={sheetRef} config={config} />
       </View>
 
       <Toast />

@@ -3,9 +3,14 @@ import React from "react";
 import DateLabel from "../DateLabel";
 import useDate from "@/hooks/useDate";
 import { DocumentData } from "firebase/firestore";
+import useTimeFormatter from "@/hooks/useTimeFormatter";
 
 const AbsenceCard = ({ data }: { data: DocumentData }) => {
   const { dayFull, date, monthFull, year, hours, minutes } = useDate(data.iso);
+  const { hourStart, minuteStart } = useTimeFormatter({
+    hourStart: hours,
+    minuteStart: minutes
+  });
 
   return (
     <View style={styles.absenceWrapper}>
@@ -15,20 +20,29 @@ const AbsenceCard = ({ data }: { data: DocumentData }) => {
           <Text style={styles.class}>{data.user.class}</Text>
         </View>
 
-        <DateLabel date={`${dayFull}, ${date} ${monthFull} ${year}`} />
+        <DateLabel
+          date={`${dayFull}, ${date} ${monthFull} ${year}`}
+          type={data.type}
+        />
       </View>
 
       <View>
         <View style={styles.justifyBetween}>
-          <Text style={styles.contentTitle}>Waktu Clock In</Text>
-          <Text style={styles.contentTitle}>Jam Keluar Masuk</Text>
+          <Text style={styles.contentTitle}>
+            {data.type == "HADIR" ? "Waktu Clock In" : "Alasan"}
+          </Text>
+          {data.timeConfig && (
+            <Text style={styles.contentTitle}>Jam Masuk Keluar</Text>
+          )}
         </View>
 
         <View style={styles.justifyBetween}>
           <Text style={styles.contentValue}>
-            {hours}.{minutes}
+            {data.type == "HADIR" ? hourStart + "." + minuteStart : data.type}
           </Text>
-          <Text style={styles.contentValue}>07.30 - 16.00</Text>
+          {data.timeConfig && (
+            <Text style={styles.contentValue}>{data.timeConfig}</Text>
+          )}
         </View>
       </View>
     </View>

@@ -1,4 +1,5 @@
 import {
+  ActivityIndicator,
   Button,
   Platform,
   Pressable,
@@ -28,40 +29,25 @@ import {
 import { db } from "@/lib/firebase";
 import useDate from "@/hooks/useDate";
 import * as Print from "expo-print";
-import { shareAsync } from "expo-sharing";
-
-const html = `
-<html>
-  <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no" />
-  </head>
-  <body style="text-align: center;">
-    <h1 style="font-size: 50px; font-family: Helvetica Neue; font-weight: normal;">
-      Hello Expo!
-    </h1>
-    <img
-      src="https://d30j33t1r58ioz.cloudfront.net/static/guides/sdk.png"
-      style="width: 90vw;" />
-  </body>
-</html>
-`;
+import usePresence from "@/hooks/usePresence";
 
 const AdminScreen = () => {
   const { signOut } = useSession();
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [clockInList, setClockInList] = useState<DocumentData[]>([]);
+  const [orderedList, setOrderedList] = useState<DocumentData[]>([]);
   const [selectedPrinter, setSelectedPrinter] = useState<Print.Printer>();
+  const { year, month, monthZero } = useDate(new Date().toISOString());
+  const html = usePresence(month, year);
 
   const getClockIn = () => {
     setIsLoading(true);
-
-    const { year, month, date } = useDate(new Date().toISOString());
+    setClockInList([]);
 
     onSnapshot(
       query(
         collection(db, "presence"),
-        where("date", ">=", `${year}-${month}-1`),
-        where("date", "<=", `${year}-${month}-31`),
+        where("iso", ">=", `${year}-${monthZero}-01T17:00:00.000Z`),
         orderBy("iso", "desc")
       ),
       (snapshot) => {
@@ -70,15 +56,8 @@ const AdminScreen = () => {
 
           setClockInList([]);
         } else {
-          const history: DocumentData[] = [];
-
           snapshot.forEach(async (item) => {
             const res = await getDoc(doc(db, "user", item.data().user));
-            history.push({
-              ...item.data(),
-              id: item.id,
-              user: { ...res.data(), id: res.id }
-            });
 
             setClockInList((prev) => [
               ...prev,
@@ -99,24 +78,38 @@ const AdminScreen = () => {
   }, []);
 
   const print = async () => {
-    // On iOS/android prints the given html. On web prints the HTML from the current page.
-    await Print.printAsync({
-      html,
-      printerUrl: selectedPrinter?.url // iOS only
-    });
-  };
+    try {
+      const res = await Print.printAsync({
+        html,
+        printerUrl: selectedPrinter?.url, // iOS only
+        orientation: Print.Orientation.landscape
+      });
 
-  const printToFile = async () => {
-    // On iOS/android prints the given html. On web prints the HTML from the current page.
-    const { uri } = await Print.printToFileAsync({ html });
-    console.log("File has been saved to:", uri);
-    await shareAsync(uri, { UTI: ".pdf", mimeType: "application/pdf" });
+      console.log("ready to print");
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   const selectPrinter = async () => {
     const printer = await Print.selectPrinterAsync(); // iOS only
     setSelectedPrinter(printer);
   };
+
+  useEffect(() => {
+    const orderedHistory = clockInList.sort(
+      (a, b) => new Date(b.date).valueOf() - new Date(a.date).valueOf()
+    );
+
+    const timeout = setTimeout(() => {
+      setOrderedList(orderedHistory);
+      setIsLoading(false);
+    }, 500);
+
+    return () => {
+      clearTimeout(timeout);
+    };
+  }, [clockInList]);
 
   return (
     <SafeAreaView>
@@ -147,20 +140,26 @@ const AdminScreen = () => {
           </View>
 
           <View style={styles.absencesWrapper}>
-            {clockInList.map((data) => (
-              <AbsenceCard key={data.id} data={data} />
-            ))}
+            {isLoading && (
+              <ActivityIndicator size={"large"} color={COLORS.primary} />
+            )}
+            {!isLoading &&
+              orderedList.map((data) => (
+                <AbsenceCard key={data.id} data={data} />
+              ))}
           </View>
         </View>
       </ScrollView>
 
-      <View style={styles.savePdfWrapper}>
-        <TouchableHighlight style={styles.savePdf} onPress={print}>
-          <Text style={{ color: "#fff" }}>Simpan Absen ke PDF</Text>
-        </TouchableHighlight>
-      </View>
+      {!isLoading && (
+        <View style={styles.savePdfWrapper}>
+          <TouchableHighlight style={styles.savePdf} onPress={print}>
+            <Text style={{ color: "#fff" }}>Simpan Absen ke PDF</Text>
+          </TouchableHighlight>
+        </View>
+      )}
 
-      {Platform.OS === "ios" && (
+      {!isLoading && Platform.OS === "ios" && (
         <>
           <Button title="Select printer" onPress={selectPrinter} />
           {selectedPrinter ? (

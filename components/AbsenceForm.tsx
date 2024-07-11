@@ -7,21 +7,24 @@ import {
   TouchableWithoutFeedback,
   View
 } from "react-native";
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { Ionicons } from "@expo/vector-icons";
 import { Dropdown } from "react-native-element-dropdown";
 import { COLORS } from "@/constants/Colors";
 import BottomSheet, { BottomSheetMethods } from "@devvie/bottom-sheet";
-import { addDoc, collection } from "firebase/firestore";
+import { addDoc, collection, DocumentData } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useSession } from "@/context";
 import useDate from "@/hooks/useDate";
 import Toast from "react-native-toast-message";
+import useTimeFormatter from "@/hooks/useTimeFormatter";
 
 const AbsenceForm = ({
-  bottomSheet
+  bottomSheet,
+  config
 }: {
   bottomSheet: React.RefObject<BottomSheetMethods>;
+  config: DocumentData;
 }) => {
   const [value, setValue] = useState("");
   const [details, setDetails] = useState("");
@@ -30,6 +33,12 @@ const AbsenceForm = ({
   const [sheetHeight, setSheetHeight] = useState(0);
   const { authId } = useSession();
   const { date, year, month } = useDate(new Date().toISOString());
+  const { hourStart, hourEnd, minuteStart, minuteEnd } = useTimeFormatter({
+    hourStart: config.hourStart,
+    hourEnd: config.hourEnd,
+    minuteStart: config.minuteStart,
+    minuteEnd: config.minuteEnd
+  });
 
   const onLayout = useCallback(
     (event: { nativeEvent: { layout: { height: number } } }) => {
@@ -62,7 +71,8 @@ const AbsenceForm = ({
         type: type,
         detail: details,
         user: authId,
-        iso: new Date().toISOString()
+        iso: new Date().toISOString(),
+        timeConfig: `${hourStart}.${minuteStart} - ${hourEnd}.${minuteEnd}`
       });
 
       bottomSheet?.current?.close();

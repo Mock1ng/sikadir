@@ -35,8 +35,6 @@ const LoginScreen = () => {
       query(collection(db, "user"), where("employeeId", "==", nip))
     );
 
-    setIsSubmitting(false);
-
     if (res.empty) {
       console.log("nip atau password salah");
       Toast.show({
@@ -44,28 +42,32 @@ const LoginScreen = () => {
         type: "error"
       });
 
+      setIsSubmitting(false);
       return;
     }
 
     res.forEach((doc) => {
       const data = doc.data();
 
-      console.log("password: ", password);
-      console.log("data.password: ", data.password);
-
       if (password === data.password) {
         signIn(doc.id);
 
-        if (data.role == "admin") {
+        console.log("user: ", data);
+
+        if (data?.role == "admin") {
           router.push("/admin");
         } else {
           router.push("/");
         }
+
+        setIsSubmitting(false);
       } else {
         Toast.show({
           text1: "password salah!",
           type: "error"
         });
+
+        setIsSubmitting(false);
       }
     });
   };
