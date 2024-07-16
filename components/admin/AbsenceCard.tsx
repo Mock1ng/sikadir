@@ -23,6 +23,7 @@ const AbsenceCard = ({ data }: { data: DocumentData }) => {
         <DateLabel
           date={`${dayFull}, ${date} ${monthFull} ${year}`}
           type={data.type}
+          from="ADMIN"
         />
       </View>
 

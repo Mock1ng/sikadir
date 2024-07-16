@@ -170,6 +170,10 @@ const ClockIn = ({
         setIsLoading(false);
         setIsClockedIn(true);
         setIsAbleClockIn(false);
+        Toast.show({
+          text1: "Berhasil Clock In",
+          type: "success"
+        });
       } catch (error) {
         Toast.show({
           text1: "Gagal untuk Clock In",
@@ -267,7 +271,7 @@ const ClockIn = ({
       hours > config.hourEnd ||
       (hours == config.hourEnd && minutes > config.minuteEnd)
     ) {
-      setIsLate(false);
+      setIsLate(true);
       setIsAbleClockIn(false);
     }
   }, [config]);

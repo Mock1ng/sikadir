@@ -4,16 +4,19 @@ import { COLORS } from "@/constants/Colors";
 
 const DateLabel = ({
   date,
-  type = "HADIR"
+  type = "HADIR",
+  from = "ANGGOTA"
 }: {
   date: string;
   type?: string;
+  from?: string;
 }) => {
   return (
     <View
       style={[
         styles.dateWrapper,
-        type == "HADIR" ? styles.backgroundPrimary : styles.backgroundDanger
+        type == "HADIR" ? styles.backgroundPrimary : styles.backgroundDanger,
+        from == "ADMIN" ? styles.labelAdmin : {}
       ]}
     >
       <Text style={styles.date}>{date}</Text>
@@ -39,5 +42,10 @@ const styles = StyleSheet.create({
   },
   backgroundDanger: {
     backgroundColor: COLORS.danger70
+  },
+  labelAdmin: {
+    position: "absolute",
+    right: 0,
+    zIndex: 99
   }
 });

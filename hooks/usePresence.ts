@@ -14,6 +14,20 @@ const usePresence = (month: number, year: number) => {
   const daysInMonth = new Date(year, month, 0).getDate();
   let presenceData: DocumentData[] = [];
 
+  const isWeekday = (year: number, month: number, day: number) => {
+    const dayNumber = new Date(year, month, day).getDay();
+
+    return dayNumber != 0 && dayNumber != 6;
+  };
+
+  const getWeekdaysInMonth = (year: number, month: number) => {
+    let weekdays = 0;
+    for (let i = 0; i < daysInMonth; i++) {
+      if (isWeekday(year, month, i + 1)) weekdays++;
+    }
+    return weekdays;
+  };
+
   const getPresences = async () => {
     try {
       const users = await getDocs(
@@ -43,13 +57,14 @@ const usePresence = (month: number, year: number) => {
 
         const userFound = presenceData.find((user) => user.id == doc.id);
         const userIndex = presenceData.findIndex((user) => user.id == doc.id);
+        const weekdaysInMonth = getWeekdaysInMonth(year, month - 1);
 
         if (presences.empty) {
           presenceData.splice(userIndex, 1, {
             ...userFound,
             presence: {
               ...userFound?.presence,
-              tk: daysInMonth
+              tk: weekdaysInMonth
             }
           });
           return;
@@ -59,7 +74,7 @@ const usePresence = (month: number, year: number) => {
           ...userFound,
           presence: {
             ...userFound?.presence,
-            tk: daysInMonth - presences.size
+            tk: weekdaysInMonth - presences.size
           }
         });
 
@@ -235,7 +250,7 @@ const usePresence = (month: number, year: number) => {
         <th style="width: 40px;">NO</th>
         <th>NAMA</th>
         <th>NIP</th>
-        <th style="width: 45px">GOL</th>
+        <th style="width: 70px">GOL</th>
         <th style="width: 80px">JUMLAH HARI KERJA</th>
         <th style="width: 70px">DINAS LUAR</th>
         <th style="width: 100px">PENDIDIKAN</th>
@@ -255,7 +270,7 @@ const usePresence = (month: number, year: number) => {
               }</td>
               <td>${data.employeeId}</td>
               <td>${data.class}</td>
-              <td>${daysInMonth}</td>
+              <td>${getWeekdaysInMonth(year, month - 1)}</td>
               <td>${data.presence.dinasLuar}</td>
               <td>${data.presence.pendidikan}</td>
               <td>${data.presence.cuti}</td>
@@ -296,8 +311,6 @@ const usePresence = (month: number, year: number) => {
 
 </html>
 `;
-
-    // console.log(absenceData);
 
     sethtml(base);
   }, [absenceData]);
