@@ -148,7 +148,7 @@ const ClockIn = ({
         return;
       }
 
-      if (distance > 100) {
+      if (distance > config.radius) {
         Toast.show({
           text1: "Anda berada di luar jangkauan kantor!",
           type: "error"

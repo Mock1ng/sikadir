@@ -25,6 +25,16 @@ export default function RootLayout() {
           headerShown: false
         }}
       />
+      <Tabs.Screen
+        name="config"
+        options={{
+          tabBarIcon: ({ color }) => (
+            <FontAwesome size={28} name="cogs" color={color} />
+          ),
+          tabBarShowLabel: false,
+          headerShown: false
+        }}
+      />
     </Tabs>
   );
 }
