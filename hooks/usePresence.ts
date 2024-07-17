@@ -13,6 +13,7 @@ const usePresence = (month: number, year: number) => {
   const [absenceData, setAbsenceData] = useState<DocumentData[] | []>([]);
   const daysInMonth = new Date(year, month, 0).getDate();
   let presenceData: DocumentData[] = [];
+  const [config, setConfig] = useState<DocumentData>({});
 
   const isWeekday = (year: number, month: number, day: number) => {
     const dayNumber = new Date(year, month, day).getDay();
@@ -30,6 +31,12 @@ const usePresence = (month: number, year: number) => {
 
   const getPresences = async () => {
     try {
+      const config = await getDocs(collection(db, "config"));
+      config.forEach((doc) => {
+        doc.data;
+        setConfig({ ...doc.data(), id: doc.id });
+      });
+
       const users = await getDocs(
         query(collection(db, "user"), where("role", "==", "anggota"))
       );
@@ -168,6 +175,23 @@ const usePresence = (month: number, year: number) => {
     getPresences();
   }, []);
 
+  const generateListHtml = (data: DocumentData, i: number) => {
+    return `<tr>
+        <td>${i + 1}</td>
+        <td style="text-align: left; padding-inline: 5px">${data.name}</td>
+        <td>${data.employeeId}</td>
+        <td>${data.class}</td>
+        <td>${getWeekdaysInMonth(year, month - 1) - config.daysOff}</td>
+        <td>${data.presence.dinasLuar}</td>
+        <td>${data.presence.pendidikan}</td>
+        <td>${data.presence.cuti}</td>
+        <td>${data.presence.sakit}</td>
+        <td>${data.presence.ijin}</td>
+        <td>${data.presence.tk - config.daysOff}</td>
+        <td>${data.presence.hadir}</td>
+      </tr>`;
+  };
+
   useEffect(() => {
     const base = `
 <!DOCTYPE html>
@@ -260,27 +284,7 @@ const usePresence = (month: number, year: number) => {
         <th style="width: 30px">TK</th>
         <th style="width: 100px">JUMLAH KEHADIRAN HARI KERJA</th>
       </tr>
-      ${absenceData.map(
-        (data: DocumentData, i: number) =>
-          `
-            <tr>
-              <td>${i + 1}</td>
-              <td style="text-align: left; padding-inline: 5px">${
-                data.name
-              }</td>
-              <td>${data.employeeId}</td>
-              <td>${data.class}</td>
-              <td>${getWeekdaysInMonth(year, month - 1)}</td>
-              <td>${data.presence.dinasLuar}</td>
-              <td>${data.presence.pendidikan}</td>
-              <td>${data.presence.cuti}</td>
-              <td>${data.presence.sakit}</td>
-              <td>${data.presence.ijin}</td>
-              <td>${data.presence.tk}</td>
-              <td>${data.presence.hadir}</td>
-            </tr>
-          `
-      )}
+      ${absenceData.map((data, i) => generateListHtml(data, i)).join("")}
     </table>
 
     <div class="footer">
