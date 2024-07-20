@@ -1,18 +1,7 @@
-import {
-  ActivityIndicator,
-  Keyboard,
-  Pressable,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableHighlight,
-  TouchableWithoutFeedback,
-  View
-} from "react-native";
-import React, { useCallback, useEffect, useState } from "react";
+import { Pressable, StyleSheet, Text, TouchableHighlight } from "react-native";
+import React, { ForwardedRef, useCallback, useEffect, useState } from "react";
 import { COLORS } from "@/constants/Colors";
 import { Ionicons } from "@expo/vector-icons";
-import { BottomSheetMethods } from "@devvie/bottom-sheet";
 import {
   addDoc,
   collection,
@@ -22,16 +11,20 @@ import {
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import Toast from "react-native-toast-message";
+import {
+  BottomSheetScrollView,
+  BottomSheetView,
+  BottomSheetTextInput,
+  useBottomSheet
+} from "@gorhom/bottom-sheet";
 
 const FormAnggota = ({
-  bottomSheet,
   purpose,
   setSheetHeight,
   userSelected
 }: {
-  bottomSheet: React.RefObject<BottomSheetMethods>;
   purpose: "add" | "edit";
-  setSheetHeight: React.Dispatch<React.SetStateAction<string | number>>;
+  setSheetHeight?: React.Dispatch<React.SetStateAction<string | number>>;
   userSelected: DocumentData;
 }) => {
   const [name, setName] = useState("");
@@ -44,6 +37,7 @@ const FormAnggota = ({
   const [role, _] = useState("anggota");
   const [isLoading, setIsLoading] = useState(false);
   const [isDisabled, setIsDisabled] = useState(true);
+  const { close } = useBottomSheet();
 
   useEffect(() => {
     setIsDisabled(false);
@@ -70,7 +64,7 @@ const FormAnggota = ({
   const onLayout = useCallback(
     (event: { nativeEvent: { layout: { height: number } } }) => {
       const { height } = event.nativeEvent.layout;
-      setSheetHeight(height);
+      if (setSheetHeight) setSheetHeight(height);
     },
     []
   );
@@ -101,6 +95,7 @@ const FormAnggota = ({
     }
 
     setIsLoading(true);
+
     try {
       await addDoc(collection(db, "user"), {
         name: name,
@@ -122,17 +117,18 @@ const FormAnggota = ({
       setRepassword("");
       setSecurePassword(true);
       setSecureRepassword(true);
+      // setIsBottomSheetOpen(false);
+      setIsLoading(false);
+      close();
     } catch (error) {
       console.log(error);
 
+      setIsLoading(false);
       Toast.show({
         text1: "Gagal menambah user baru!",
         type: "error"
       });
     }
-
-    setIsLoading(false);
-    bottomSheet?.current?.close();
   };
 
   const editUser = async () => {
@@ -181,50 +177,55 @@ const FormAnggota = ({
         text1: "Berhasil mengubah data user",
         type: "success"
       });
+
+      // setIsBottomSheetOpen(false);
+      setIsLoading(false);
+      close();
     } catch (error) {
       console.log(error);
 
+      setIsLoading(false);
       Toast.show({
         text1: "Gagal mengubah data user!",
         type: "error"
       });
     }
-
-    setIsLoading(false);
-    bottomSheet?.current?.close();
   };
 
   return (
-    <TouchableWithoutFeedback onPress={Keyboard.dismiss} onLayout={onLayout}>
-      <View style={styles.editWrapper}>
-        <View style={styles.editHeader}>
+    <BottomSheetScrollView>
+      <BottomSheetView style={styles.editWrapper}>
+        <BottomSheetView style={styles.editHeader}>
           <Pressable
-            onPress={isLoading ? () => {} : bottomSheet?.current?.close}
+            onPress={() => {
+              close();
+              console.log("clossee");
+            }}
           >
             <Ionicons name="close" size={22} />
           </Pressable>
           <Text style={styles.editHeaderText}>
             {purpose == "edit" ? "Ubah Data" : "Tambah Anggota"}
           </Text>
-        </View>
+        </BottomSheetView>
 
-        <View style={styles.formWrapper}>
-          <View style={styles.formField}>
+        <BottomSheetView style={styles.formWrapper}>
+          <BottomSheetView style={styles.formField}>
             <Text style={styles.formTitle}>Nama Lengkap</Text>
 
-            <TextInput
+            <BottomSheetTextInput
               style={styles.formInput}
               placeholder="Masukkan nama lengkap"
               defaultValue={purpose == "edit" ? name : ""}
               value={name}
-              onChangeText={(value) => setName(value)}
+              onChangeText={setName}
             />
-          </View>
+          </BottomSheetView>
 
-          <View style={styles.formField}>
+          <BottomSheetView style={styles.formField}>
             <Text style={styles.formTitle}>NIP</Text>
 
-            <TextInput
+            <BottomSheetTextInput
               style={styles.formInput}
               placeholder="Masukkan nomor induk pegawai"
               keyboardType="numeric"
@@ -232,25 +233,27 @@ const FormAnggota = ({
               value={employeeId}
               onChangeText={(value) => setEmployeeId(value)}
             />
-          </View>
+          </BottomSheetView>
 
-          <View style={styles.formField}>
+          <BottomSheetView style={styles.formField}>
             <Text style={styles.formTitle}>Golongan</Text>
 
-            <TextInput
+            <BottomSheetTextInput
               style={styles.formInput}
               placeholder="Masukkan golongan"
               defaultValue={purpose == "edit" ? userClass : ""}
               value={userClass}
               onChangeText={(value) => setUserClass(value)}
             />
-          </View>
+          </BottomSheetView>
 
-          <View style={styles.formField}>
+          <BottomSheetView style={styles.formField}>
             <Text style={styles.formTitle}>Password Baru</Text>
 
-            <View style={{ flexDirection: "row", alignItems: "center" }}>
-              <TextInput
+            <BottomSheetView
+              style={{ flexDirection: "row", alignItems: "center" }}
+            >
+              <BottomSheetTextInput
                 style={styles.formInput}
                 placeholder="Masukkan password baru"
                 value={password}
@@ -264,14 +267,16 @@ const FormAnggota = ({
                 size={16}
                 onPress={() => setSecurePassword((prev) => !prev)}
               />
-            </View>
-          </View>
+            </BottomSheetView>
+          </BottomSheetView>
 
-          <View style={styles.formField}>
+          <BottomSheetView style={styles.formField}>
             <Text style={styles.formTitle}>Ulangi Password Baru</Text>
 
-            <View style={{ flexDirection: "row", alignItems: "center" }}>
-              <TextInput
+            <BottomSheetView
+              style={{ flexDirection: "row", alignItems: "center" }}
+            >
+              <BottomSheetTextInput
                 style={styles.formInput}
                 placeholder="Ulangi password baru"
                 value={repassword}
@@ -286,9 +291,9 @@ const FormAnggota = ({
                 size={16}
                 onPress={() => setSecureRepassword((prev) => !prev)}
               />
-            </View>
-          </View>
-        </View>
+            </BottomSheetView>
+          </BottomSheetView>
+        </BottomSheetView>
 
         <TouchableHighlight
           style={[
@@ -307,8 +312,8 @@ const FormAnggota = ({
               : "Tambah Anggota"}
           </Text>
         </TouchableHighlight>
-      </View>
-    </TouchableWithoutFeedback>
+      </BottomSheetView>
+    </BottomSheetScrollView>
   );
 };
 
@@ -318,7 +323,7 @@ const styles = StyleSheet.create({
   editWrapper: {
     padding: 16,
     gap: 24,
-    backgroundColor: "#F9FAFC"
+    marginBottom: 24
   },
   editHeader: {
     flexDirection: "row",

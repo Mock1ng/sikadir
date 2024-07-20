@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from "react";
 import BottomSheet, { BottomSheetMethods } from "@devvie/bottom-sheet";
 import DeleteConfirmation from "./DeleteConfirmation";
-import FormAnggota from "./FormAnggota";
-import { Text, View } from "react-native";
+import FormAnggotaEdit from "./FormAnggotaEdit";
+import { ScrollView } from "react-native";
 import { DocumentData } from "firebase/firestore";
+// import GorhomFormAnggota from "./GorhomFormAnggota";
 
 const AnggotaBottomSheet = ({
   bottomSheet,
@@ -24,21 +25,30 @@ const AnggotaBottomSheet = ({
 
   return (
     <BottomSheet ref={bottomSheet} height={sheetHeight} hideDragHandle={true}>
-      {(purpose == "add" || purpose == "edit") && (
-        <FormAnggota
-          bottomSheet={bottomSheet}
-          purpose={purpose}
-          setSheetHeight={setSheetHeight}
-          userSelected={userSelected}
-        />
-      )}
-      {purpose == "delete" && (
-        <DeleteConfirmation
-          bottomSheet={bottomSheet}
-          setSheetHeight={setSheetHeight}
-          userSelected={userSelected}
-        />
-      )}
+      <ScrollView>
+        {purpose == "edit" && (
+          // <FormAnggota
+          //   bottomSheet={bottomSheet}
+          //   purpose={purpose}
+          //   setSheetHeight={setSheetHeight}
+          //   userSelected={userSelected}
+          // />
+
+          <FormAnggotaEdit
+            bottomSheet={bottomSheet}
+            purpose={purpose}
+            setSheetHeight={setSheetHeight}
+            userSelected={userSelected}
+          />
+        )}
+        {purpose == "delete" && (
+          <DeleteConfirmation
+            bottomSheet={bottomSheet}
+            setSheetHeight={setSheetHeight}
+            userSelected={userSelected}
+          />
+        )}
+      </ScrollView>
     </BottomSheet>
   );
 };

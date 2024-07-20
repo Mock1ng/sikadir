@@ -23,6 +23,9 @@ import {
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import Toast from "react-native-toast-message";
+import GorhomBottomSheet from "@/components/admin/GorhomBottomSheet";
+import BottomSheet from "@gorhom/bottom-sheet";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 type bottomSheetPurposeType = "edit" | "delete" | "add";
 
@@ -34,6 +37,7 @@ const AnggotaScreen = () => {
   const [users, setUsers] = useState<DocumentData[]>([]);
   const [userSelected, setUserSelected] = useState<DocumentData>({});
   const [isLoading, setIsLoading] = useState(false);
+  const gorhomRef = useRef<BottomSheet>(null);
 
   const getUser = async () => {
     console.log("get user called");
@@ -72,7 +76,7 @@ const AnggotaScreen = () => {
   }, []);
 
   return (
-    <>
+    <GestureHandlerRootView>
       <SafeAreaView style={{ flex: 1 }}>
         <View style={styles.anggotaWrapper}>
           <View style={styles.anggotaHeader}>
@@ -81,14 +85,13 @@ const AnggotaScreen = () => {
             <View style={styles.headerIcons}>
               <Pressable
                 onPress={() => {
-                  bottomSheetRef.current?.open();
+                  gorhomRef.current?.expand();
                   setBottomSheetPurpose("add");
                   setUserSelected({});
                 }}
               >
                 <Ionicons name="person-add-outline" size={24} />
               </Pressable>
-              {/* <Ionicons name="filter" size={16} /> */}
             </View>
           </View>
 
@@ -128,9 +131,15 @@ const AnggotaScreen = () => {
           bottomSheet={bottomSheetRef}
           userSelected={userSelected}
         />
+
+        <GorhomBottomSheet
+          ref={gorhomRef}
+          purpose={bottomSheetPurpose}
+          userSelected={userSelected}
+        />
       </SafeAreaView>
       <Toast />
-    </>
+    </GestureHandlerRootView>
   );
 };
 

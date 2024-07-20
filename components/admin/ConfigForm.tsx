@@ -152,14 +152,14 @@ const ConfigForm = ({ config }: { config: DocumentData }) => {
       </View>
 
       <View style={styles.formField}>
-        <Text style={styles.formTitle}>Hari Libur</Text>
+        <Text style={styles.formTitle}>Jumlah Hari Libur</Text>
         <TextInput
           style={styles.formInput}
           keyboardType="numeric"
           defaultValue={daysOff}
           onChangeText={(value) => setDaysOff(value)}
           value={daysOff}
-          placeholder="Silahkan masukkan hari libur"
+          placeholder="Silahkan masukkan hari libur untuk bulan ini"
         />
       </View>
 

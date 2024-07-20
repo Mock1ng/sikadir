@@ -49,7 +49,7 @@ const LoginScreen = () => {
     res.forEach((doc) => {
       const data = doc.data();
 
-      if (password === data.password) {
+      if (password.trim() === data.password) {
         signIn(doc.id);
 
         console.log("user: ", data);
@@ -145,8 +145,11 @@ const LoginScreen = () => {
                 />
                 <Ionicons
                   name={securePassword ? "eye-off" : "eye"}
-                  style={{ position: "absolute", right: 10 }}
-                  size={16}
+                  style={{
+                    position: "absolute",
+                    right: 10
+                  }}
+                  size={20}
                   onPress={() => setSecurePassword((prev) => !prev)}
                 />
               </View>
