@@ -155,7 +155,7 @@ const LoginScreen = () => {
               </View>
             </View>
 
-            <Pressable
+            {/* <Pressable
               style={{
                 flexDirection: "row",
                 gap: 10,
@@ -175,7 +175,7 @@ const LoginScreen = () => {
                 {isSaveNip && <Ionicons name="checkmark" size={14} />}
               </View>
               <Text>Simpan NIP Saya</Text>
-            </Pressable>
+            </Pressable> */}
           </View>
 
           <TouchableHighlight

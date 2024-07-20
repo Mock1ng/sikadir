@@ -13,7 +13,7 @@ type RefType = BottomSheet;
 
 const GorhomBottomSheet = forwardRef<RefType, BottomSheetType>(
   ({ purpose, userSelected }, ref) => {
-    const snapPoints = useMemo(() => ["25%", "50%", "90%"], []);
+    const snapPoints = useMemo(() => ["90%"], []);
 
     const renderBackdrop = useCallback(
       (
@@ -33,10 +33,10 @@ const GorhomBottomSheet = forwardRef<RefType, BottomSheetType>(
         ref={ref}
         snapPoints={snapPoints}
         index={-1}
-        enablePanDownToClose
         backdropComponent={renderBackdrop}
         backgroundStyle={{ backgroundColor: "#F9FAFC" }}
         keyboardBehavior="interactive"
+        handleIndicatorStyle={{ backgroundColor: "#F9FAFC" }}
       >
         {purpose == "add" && (
           <FormAnggotaAdd purpose={purpose} userSelected={userSelected} />

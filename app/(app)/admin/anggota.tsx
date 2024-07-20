@@ -109,6 +109,7 @@ const AnggotaScreen = () => {
             {!isLoading && users.length > 0 && (
               <FlatList
                 data={users}
+                keyExtractor={(item) => item.employeeId}
                 renderItem={({ item }) => (
                   <AnggotaCard
                     bottomSheetRef={bottomSheetRef}

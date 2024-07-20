@@ -1,4 +1,12 @@
-import { Pressable, StyleSheet, Text, TouchableHighlight } from "react-native";
+import {
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableHighlight,
+  View,
+  TextInput
+} from "react-native";
 import React, { ForwardedRef, useCallback, useEffect, useState } from "react";
 import { COLORS } from "@/constants/Colors";
 import { Ionicons } from "@expo/vector-icons";
@@ -11,12 +19,7 @@ import {
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import Toast from "react-native-toast-message";
-import {
-  BottomSheetScrollView,
-  BottomSheetView,
-  BottomSheetTextInput,
-  useBottomSheet
-} from "@gorhom/bottom-sheet";
+import { BottomSheetScrollView, useBottomSheet } from "@gorhom/bottom-sheet";
 
 const FormAnggota = ({
   purpose,
@@ -193,9 +196,9 @@ const FormAnggota = ({
   };
 
   return (
-    <BottomSheetScrollView>
-      <BottomSheetView style={styles.editWrapper}>
-        <BottomSheetView style={styles.editHeader}>
+    <ScrollView>
+      <View style={styles.editWrapper}>
+        <View style={styles.editHeader}>
           <Pressable
             onPress={() => {
               close();
@@ -207,25 +210,25 @@ const FormAnggota = ({
           <Text style={styles.editHeaderText}>
             {purpose == "edit" ? "Ubah Data" : "Tambah Anggota"}
           </Text>
-        </BottomSheetView>
+        </View>
 
-        <BottomSheetView style={styles.formWrapper}>
-          <BottomSheetView style={styles.formField}>
+        <View style={styles.formWrapper}>
+          <View style={styles.formField}>
             <Text style={styles.formTitle}>Nama Lengkap</Text>
 
-            <BottomSheetTextInput
+            <TextInput
               style={styles.formInput}
               placeholder="Masukkan nama lengkap"
               defaultValue={purpose == "edit" ? name : ""}
               value={name}
               onChangeText={setName}
             />
-          </BottomSheetView>
+          </View>
 
-          <BottomSheetView style={styles.formField}>
+          <View style={styles.formField}>
             <Text style={styles.formTitle}>NIP</Text>
 
-            <BottomSheetTextInput
+            <TextInput
               style={styles.formInput}
               placeholder="Masukkan nomor induk pegawai"
               keyboardType="numeric"
@@ -233,27 +236,25 @@ const FormAnggota = ({
               value={employeeId}
               onChangeText={(value) => setEmployeeId(value)}
             />
-          </BottomSheetView>
+          </View>
 
-          <BottomSheetView style={styles.formField}>
+          <View style={styles.formField}>
             <Text style={styles.formTitle}>Golongan</Text>
 
-            <BottomSheetTextInput
+            <TextInput
               style={styles.formInput}
               placeholder="Masukkan golongan"
               defaultValue={purpose == "edit" ? userClass : ""}
               value={userClass}
               onChangeText={(value) => setUserClass(value)}
             />
-          </BottomSheetView>
+          </View>
 
-          <BottomSheetView style={styles.formField}>
+          <View style={styles.formField}>
             <Text style={styles.formTitle}>Password Baru</Text>
 
-            <BottomSheetView
-              style={{ flexDirection: "row", alignItems: "center" }}
-            >
-              <BottomSheetTextInput
+            <View style={{ flexDirection: "row", alignItems: "center" }}>
+              <TextInput
                 style={styles.formInput}
                 placeholder="Masukkan password baru"
                 value={password}
@@ -267,16 +268,14 @@ const FormAnggota = ({
                 size={16}
                 onPress={() => setSecurePassword((prev) => !prev)}
               />
-            </BottomSheetView>
-          </BottomSheetView>
+            </View>
+          </View>
 
-          <BottomSheetView style={styles.formField}>
+          <View style={styles.formField}>
             <Text style={styles.formTitle}>Ulangi Password Baru</Text>
 
-            <BottomSheetView
-              style={{ flexDirection: "row", alignItems: "center" }}
-            >
-              <BottomSheetTextInput
+            <View style={{ flexDirection: "row", alignItems: "center" }}>
+              <TextInput
                 style={styles.formInput}
                 placeholder="Ulangi password baru"
                 value={repassword}
@@ -291,9 +290,9 @@ const FormAnggota = ({
                 size={16}
                 onPress={() => setSecureRepassword((prev) => !prev)}
               />
-            </BottomSheetView>
-          </BottomSheetView>
-        </BottomSheetView>
+            </View>
+          </View>
+        </View>
 
         <TouchableHighlight
           style={[
@@ -312,8 +311,8 @@ const FormAnggota = ({
               : "Tambah Anggota"}
           </Text>
         </TouchableHighlight>
-      </BottomSheetView>
-    </BottomSheetScrollView>
+      </View>
+    </ScrollView>
   );
 };
 

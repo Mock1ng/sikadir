@@ -99,6 +99,7 @@ const ClockIn = ({
   const [isRegistered, setIsRegistered] = React.useState(false);
   const [status, setStatus] =
     useState<BackgroundFetch.BackgroundFetchStatus | null>(null);
+  const [isWeekend, setIsWeekend] = useState(false);
 
   const clockInHandler = async () => {
     setIsLoading(true);
@@ -271,6 +272,8 @@ const ClockIn = ({
       hours > config.hourEnd ||
       (hours == config.hourEnd && minutes > config.minuteEnd)
     ) {
+      if (isClockedIn) return;
+
       setIsLate(true);
       setIsAbleClockIn(false);
     }
@@ -300,6 +303,12 @@ const ClockIn = ({
   //   checkStatusAsync();
   // };
 
+  useEffect(() => {
+    if (dayFull == "Sabtu" || dayFull == "Minggu") {
+      setIsWeekend(true);
+    }
+  }, [dayFull]);
+
   return (
     <View style={styles.checkInWrapper}>
       <View style={styles.clockInHeader}>
@@ -317,35 +326,38 @@ const ClockIn = ({
         </Text>
       </View>
 
-      {Object.keys(config).length > 0 && isAbleClockIn && !isClockedIn && (
-        <View>
-          <TouchableHighlight
-            style={styles.clockInBtn}
-            underlayColor={COLORS.primaryUnderlay}
-            onPress={clockInHandler}
-          >
-            <View>
-              <Text style={styles.clockInText}>
-                {isLoading ? "Loading..." : "Clock In"}
-              </Text>
-            </View>
-          </TouchableHighlight>
+      {Object.keys(config).length > 0 &&
+        isAbleClockIn &&
+        !isClockedIn &&
+        !isWeekend && (
+          <View>
+            <TouchableHighlight
+              style={styles.clockInBtn}
+              underlayColor={COLORS.primaryUnderlay}
+              onPress={clockInHandler}
+            >
+              <View>
+                <Text style={styles.clockInText}>
+                  {isLoading ? "Loading..." : "Clock In"}
+                </Text>
+              </View>
+            </TouchableHighlight>
 
-          <TouchableHighlight
-            style={styles.absenceBtn}
-            underlayColor={"#fff"}
-            onPress={() => {
-              bottomSheet?.current?.open();
-            }}
-          >
-            <View>
-              <Text style={styles.absenceText}>Tidak Hadir</Text>
-            </View>
-          </TouchableHighlight>
-        </View>
-      )}
+            <TouchableHighlight
+              style={styles.absenceBtn}
+              underlayColor={"#fff"}
+              onPress={() => {
+                bottomSheet?.current?.open();
+              }}
+            >
+              <View>
+                <Text style={styles.absenceText}>Tidak Hadir</Text>
+              </View>
+            </TouchableHighlight>
+          </View>
+        )}
 
-      {isClockedIn && (
+      {isClockedIn && !isWeekend && (
         <View style={styles.isClockedInWrapper}>
           <Text style={styles.isClockedInText}>
             Kamu sudah Clock In hari ini
@@ -353,7 +365,7 @@ const ClockIn = ({
         </View>
       )}
 
-      {isLate && (
+      {isLate && !isWeekend && (
         <View style={styles.isLateWrapper}>
           <Text style={styles.isLateText}>
             Kamu terlambat Clock In hari ini
@@ -361,7 +373,7 @@ const ClockIn = ({
         </View>
       )}
 
-      {isNotAttend && (
+      {isNotAttend && !isWeekend && (
         <View style={styles.isLateWrapper}>
           <Text style={styles.isLateText}>Kamu tidak hadir hari ini</Text>
         </View>
